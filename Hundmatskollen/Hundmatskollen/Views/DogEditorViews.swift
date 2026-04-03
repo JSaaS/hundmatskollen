@@ -87,36 +87,10 @@ struct AddDogView: View {
                         hasAttemptedSave = true
                         saveDog()
                     }
-                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || parsedWeight == nil)
                     .disabled(!isFormValid)
                 }
             }
         }
-    }
-
-    private var parsedWeight: Double? {
-        Double(weightText.replacingOccurrences(of: ",", with: "."))
-    }
-
-    private func saveDog() {
-        guard let weight = parsedWeight else { return }
-
-        let dog = Dog(
-            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
-        guard let weight = parsedWeight, !trimmedName.isEmpty else { return }
-
-        let dog = Dog(
-            name: trimmedName,
-            breed: breed,
-            weightKg: weight,
-            birthDate: birthDate,
-            gender: gender,
-            healthStatus: healthStatus,
-            activityLevel: activityLevel,
-            feedingGoal: feedingGoal
-        )
-        modelContext.insert(dog)
-        dismiss()
     }
 
     private var trimmedName: String {
@@ -139,6 +113,23 @@ struct AddDogView: View {
 
     private var shouldShowWeightError: Bool {
         hasAttemptedSave && parsedWeight == nil
+    }
+
+    private func saveDog() {
+        guard let weight = parsedWeight, !trimmedName.isEmpty else { return }
+
+        let dog = Dog(
+            name: trimmedName,
+            breed: breed,
+            weightKg: weight,
+            birthDate: birthDate,
+            gender: gender,
+            healthStatus: healthStatus,
+            activityLevel: activityLevel,
+            feedingGoal: feedingGoal
+        )
+        modelContext.insert(dog)
+        dismiss()
     }
 }
 
@@ -238,36 +229,19 @@ struct EditDogView: View {
                     hasAttemptedSave = true
                     saveChanges()
                 }
-                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || editedWeight == nil)
                 .disabled(!isFormValid)
             }
         }
+    }
+
+    private var trimmedName: String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private var editedWeight: Double? {
         let normalizedText = weightText.replacingOccurrences(of: ",", with: ".")
         guard let value = Double(normalizedText), value > 0 else { return nil }
         return value
-    }
-
-    private func saveChanges() {
-        guard let editedWeight, !trimmedName.isEmpty else { return }
-
-        dog.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        dog.name = trimmedName
-        dog.breed = breed
-        dog.weightKg = editedWeight
-        dog.birthDate = birthDate
-        dog.gender = gender
-        dog.healthStatus = healthStatus
-        dog.activityLevel = activityLevel
-        dog.feedingGoal = feedingGoal
-
-        dismiss()
-    }
-
-    private var trimmedName: String {
-        name.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private var isFormValid: Bool {
@@ -280,6 +254,21 @@ struct EditDogView: View {
 
     private var shouldShowWeightError: Bool {
         hasAttemptedSave && editedWeight == nil
+    }
+
+    private func saveChanges() {
+        guard let editedWeight, !trimmedName.isEmpty else { return }
+
+        dog.name = trimmedName
+        dog.breed = breed
+        dog.weightKg = editedWeight
+        dog.birthDate = birthDate
+        dog.gender = gender
+        dog.healthStatus = healthStatus
+        dog.activityLevel = activityLevel
+        dog.feedingGoal = feedingGoal
+
+        dismiss()
     }
 }
 
