@@ -25,17 +25,150 @@ enum ActivityLevel: String, Codable, CaseIterable {
         case .athlete:  return 3.0
         }
     }
+
+    var description: String {
+        switch self {
+        case .low:
+            return "Passar hundar som mest tar lugna promenader och vilar mycket."
+        case .moderate:
+            return "För normal vardagsaktivitet med regelbundna promenader och lek."
+        case .high:
+            return "För aktiva hundar som tränar ofta eller rör sig mycket varje dag."
+        case .athlete:
+            return "För arbetande eller hårt tränande hundar med högt energibehov."
+        }
+    }
 }
 
 /// Hundens hälsostatus – kan påverka rekommenderade näringsvärden
 enum HealthStatus: String, Codable, CaseIterable {
-    case healthy  = "Frisk"
-    case puppy    = "Valp"
-    case senior   = "Senior"
-    case pregnant = "Dräktig/Digivande"
-    case sick     = "Sjuk"
+    case healthy    = "Frisk"
+    case puppy      = "Valp"
+    case senior     = "Senior"
+    case pregnant   = "Dräktig/Digivande"
+    case sick       = "Sjuk"
     case weightLoss = "Viktnedgång"
     case weightGain = "Viktuppgång"
+
+    static var profileOptions: [HealthStatus] {
+        [.healthy, .puppy, .senior, .pregnant, .sick]
+    }
+
+    var description: String {
+        switch self {
+        case .healthy:
+            return "Standardläge för en frisk vuxen hund."
+        case .puppy:
+            return "Valpar behöver mer energi och protein för tillväxt."
+        case .senior:
+            return "Seniorhundar behöver ofta lite mindre energi men fortsatt bra proteinkvalitet."
+        case .pregnant:
+            return "Dräktiga eller digivande tikar behöver extra energi och näring."
+        case .sick:
+            return "Vid sjukdom bör rekommendationerna ses som vägledande och veterinär rådfrågas."
+        case .weightLoss:
+            return "Äldre alternativ för viktnedgångsmål."
+        case .weightGain:
+            return "Äldre alternativ för viktuppgångsmål."
+        }
+    }
+
+    var calorieFactor: Double {
+        switch self {
+        case .healthy:
+            return 1.0
+        case .puppy:
+            return 1.8
+        case .senior:
+            return 0.9
+        case .pregnant:
+            return 1.4
+        case .sick:
+            return 1.0
+        case .weightLoss:
+            return 0.9
+        case .weightGain:
+            return 1.1
+        }
+    }
+
+    var proteinShare: Double {
+        switch self {
+        case .healthy, .senior:
+            return 0.25
+        case .puppy, .pregnant, .sick:
+            return 0.28
+        case .weightLoss:
+            return 0.32
+        case .weightGain:
+            return 0.27
+        }
+    }
+
+    var fatShare: Double {
+        switch self {
+        case .healthy, .senior, .sick:
+            return 0.30
+        case .puppy, .pregnant:
+            return 0.32
+        case .weightLoss:
+            return 0.28
+        case .weightGain:
+            return 0.31
+        }
+    }
+
+    var waterFactor: Double {
+        switch self {
+        case .healthy, .senior, .weightLoss, .weightGain:
+            return 50
+        case .puppy:
+            return 60
+        case .pregnant:
+            return 65
+        case .sick:
+            return 70
+        }
+    }
+}
+
+enum FeedingGoal: String, Codable, CaseIterable {
+    case maintain   = "Underhåll"
+    case loseWeight = "Viktnedgång"
+    case gainWeight = "Viktuppgång"
+
+    var description: String {
+        switch self {
+        case .maintain:
+            return "Behåll nuvarande vikt med balanserat energiintag."
+        case .loseWeight:
+            return "Sänk energin något men håll proteinintaget uppe för att bevara muskelmassa."
+        case .gainWeight:
+            return "Öka energin stegvis för att stödja viktuppgång."
+        }
+    }
+
+    var calorieFactor: Double {
+        switch self {
+        case .maintain:
+            return 1.0
+        case .loseWeight:
+            return 0.85
+        case .gainWeight:
+            return 1.15
+        }
+    }
+
+    var proteinShareAdjustment: Double {
+        switch self {
+        case .maintain:
+            return 0
+        case .loseWeight:
+            return 0.03
+        case .gainWeight:
+            return 0.01
+        }
+    }
 }
 
 // MARK: - Dog Model
@@ -55,6 +188,7 @@ final class Dog {
     // Hälsa & mål
     var healthStatus: HealthStatus
     var activityLevel: ActivityLevel
+    var feedingGoalRawValue: String?
 
     // Metadata
     var createdAt: Date
@@ -70,7 +204,8 @@ final class Dog {
         birthDate: Date = Date(),
         gender: DogGender = .male,
         healthStatus: HealthStatus = .healthy,
-        activityLevel: ActivityLevel = .moderate
+        activityLevel: ActivityLevel = .moderate,
+        feedingGoal: FeedingGoal = .maintain
     ) {
         self.name = name
         self.breed = breed
@@ -79,6 +214,7 @@ final class Dog {
         self.gender = gender
         self.healthStatus = healthStatus
         self.activityLevel = activityLevel
+        self.feedingGoalRawValue = feedingGoal.rawValue
         self.createdAt = Date()
     }
 
@@ -95,33 +231,37 @@ final class Dog {
         70 * pow(weightKg, 0.75)
     }
 
-    /// MER = Maintenance Energy Requirement (kcal/dag)
-    /// RER × aktivitetsfaktor
+    /// Dagsbehov i kcal utifrån aktivitet, hälsostatus och mål
     var dailyCalories: Double {
-        rer * activityLevel.factor
+        rer * activityLevel.factor * healthStatus.calorieFactor * feedingGoal.calorieFactor
     }
 
     /// Rekommenderat dagligt proteinintag (gram)
-    /// Grundregel: ~25% av kalorier från protein (1g protein = 4 kcal)
     var dailyProteinGrams: Double {
-        (dailyCalories * 0.25) / 4
+        let proteinShare = min(healthStatus.proteinShare + feedingGoal.proteinShareAdjustment, 0.4)
+        return (dailyCalories * proteinShare) / 4
     }
 
     /// Rekommenderat dagligt fettintag (gram)
-    /// Grundregel: ~30% av kalorier från fett (1g fett = 9 kcal)
     var dailyFatGrams: Double {
-        (dailyCalories * 0.30) / 9
+        (dailyCalories * healthStatus.fatShare) / 9
     }
 
     /// Rekommenderat dagligt kolhydratintag (gram)
-    /// Grundregel: ~45% av kalorier från kolhydrater (1g = 4 kcal)
     var dailyCarbGrams: Double {
-        (dailyCalories * 0.45) / 4
+        let proteinCalories = dailyProteinGrams * 4
+        let fatCalories = dailyFatGrams * 9
+        let remainingCalories = max(dailyCalories - proteinCalories - fatCalories, 0)
+        return remainingCalories / 4
     }
 
     /// Rekommenderat dagligt vattenintag (ml)
-    /// Grundregel: ~50ml per kg kroppsvikt
     var dailyWaterMl: Double {
-        weightKg * 50
+        weightKg * healthStatus.waterFactor
+    }
+
+    var feedingGoal: FeedingGoal {
+        get { FeedingGoal(rawValue: feedingGoalRawValue ?? "") ?? .maintain }
+        set { feedingGoalRawValue = newValue.rawValue }
     }
 }
