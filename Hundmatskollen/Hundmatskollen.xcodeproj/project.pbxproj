@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		084BBB122F80599800E8F443 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 084BBACC2F7FD2E800E8F443 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 084BBAD32F7FD2E800E8F443;
+			remoteInfo = Hundmatskollen;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		084BBAD42F7FD2E800E8F443 /* Hundmatskollen.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hundmatskollen.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		084BBB0E2F80599800E8F443 /* HundmatskollenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HundmatskollenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +27,22 @@
 			path = Hundmatskollen;
 			sourceTree = "<group>";
 		};
+		084BBB0F2F80599800E8F443 /* HundmatskollenTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HundmatskollenTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		084BBAD12F7FD2E800E8F443 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		084BBB0B2F80599800E8F443 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				084BBAD62F7FD2E800E8F443 /* Hundmatskollen */,
+				084BBB0F2F80599800E8F443 /* HundmatskollenTests */,
 				084BBAD52F7FD2E800E8F443 /* Products */,
 				084BBAF22F7FF4D600E8F443 /* Views */,
 			);
@@ -42,6 +66,7 @@
 			isa = PBXGroup;
 			children = (
 				084BBAD42F7FD2E800E8F443 /* Hundmatskollen.app */,
+				084BBB0E2F80599800E8F443 /* HundmatskollenTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -78,6 +103,29 @@
 			productReference = 084BBAD42F7FD2E800E8F443 /* Hundmatskollen.app */;
 			productType = "com.apple.product-type.application";
 		};
+		084BBB0D2F80599800E8F443 /* HundmatskollenTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 084BBB142F80599800E8F443 /* Build configuration list for PBXNativeTarget "HundmatskollenTests" */;
+			buildPhases = (
+				084BBB0A2F80599800E8F443 /* Sources */,
+				084BBB0B2F80599800E8F443 /* Frameworks */,
+				084BBB0C2F80599800E8F443 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				084BBB132F80599800E8F443 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				084BBB0F2F80599800E8F443 /* HundmatskollenTests */,
+			);
+			name = HundmatskollenTests;
+			packageProductDependencies = (
+			);
+			productName = HundmatskollenTests;
+			productReference = 084BBB0E2F80599800E8F443 /* HundmatskollenTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -90,6 +138,10 @@
 				TargetAttributes = {
 					084BBAD32F7FD2E800E8F443 = {
 						CreatedOnToolsVersion = 26.4;
+					};
+					084BBB0D2F80599800E8F443 = {
+						CreatedOnToolsVersion = 26.4;
+						TestTargetID = 084BBAD32F7FD2E800E8F443;
 					};
 				};
 			};
@@ -108,12 +160,20 @@
 			projectRoot = "";
 			targets = (
 				084BBAD32F7FD2E800E8F443 /* Hundmatskollen */,
+				084BBB0D2F80599800E8F443 /* HundmatskollenTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		084BBAD22F7FD2E800E8F443 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		084BBB0C2F80599800E8F443 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -130,7 +190,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		084BBB0A2F80599800E8F443 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		084BBB132F80599800E8F443 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 084BBAD32F7FD2E800E8F443 /* Hundmatskollen */;
+			targetProxy = 084BBB122F80599800E8F443 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		084BBADF2F7FD2E800E8F443 /* Debug */ = {
@@ -318,6 +393,48 @@
 			};
 			name = Release;
 		};
+		084BBB152F80599800E8F443 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5PS6U6LDKJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jsaas.HundmatskollenTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hundmatskollen.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Hundmatskollen";
+			};
+			name = Debug;
+		};
+		084BBB162F80599800E8F443 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 5PS6U6LDKJ;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jsaas.HundmatskollenTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hundmatskollen.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Hundmatskollen";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -335,6 +452,15 @@
 			buildConfigurations = (
 				084BBAE22F7FD2E800E8F443 /* Debug */,
 				084BBAE32F7FD2E800E8F443 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		084BBB142F80599800E8F443 /* Build configuration list for PBXNativeTarget "HundmatskollenTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				084BBB152F80599800E8F443 /* Debug */,
+				084BBB162F80599800E8F443 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
