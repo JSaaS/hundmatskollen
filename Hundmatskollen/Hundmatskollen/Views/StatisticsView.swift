@@ -13,7 +13,7 @@ struct StatisticsView: View {
 
     private var selectedDog: Dog? {
         if let selectedDogID {
-            return dogs.first { $0.persistentModelID == selectedDogID }
+            return dogs.first { $0.persistentModelID == selectedDogID } ?? dogs.first
         }
 
         return dogs.first

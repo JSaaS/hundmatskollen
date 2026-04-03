@@ -12,6 +12,7 @@ struct AddDogView: View {
     @State private var gender: DogGender = .male
     @State private var healthStatus: HealthStatus = .healthy
     @State private var activityLevel: ActivityLevel = .moderate
+    @State private var feedingGoal: FeedingGoal = .maintain
     @State private var hasAttemptedSave = false
 
     var body: some View {
@@ -38,24 +39,34 @@ struct AddDogView: View {
 
                 Section("Hälsa & mål") {
                     Picker("Status", selection: $healthStatus) {
-                        ForEach(HealthStatus.allCases, id: \.self) { Text($0.rawValue) }
+                        ForEach(HealthStatus.profileOptions, id: \.self) { Text($0.rawValue) }
                     }
+                    ContextDescription(text: healthStatus.description)
+
                     Picker("Aktivitetsnivå", selection: $activityLevel) {
                         ForEach(ActivityLevel.allCases, id: \.self) { Text($0.rawValue) }
                     }
+                    ContextDescription(text: activityLevel.description)
+
+                    Picker("Mål", selection: $feedingGoal) {
+                        ForEach(FeedingGoal.allCases, id: \.self) { Text($0.rawValue) }
+                    }
+                    ContextDescription(text: feedingGoal.description)
                 }
 
                 Section("Beräknat dagsbehov") {
-                    if let weight = Double(weightText.replacingOccurrences(of: ",", with: ".")) {
+                    if let weight = parsedWeight {
                         let tempDog = Dog(
                             name: name,
                             weightKg: weight,
                             healthStatus: healthStatus,
-                            activityLevel: activityLevel
+                            activityLevel: activityLevel,
+                            feedingGoal: feedingGoal
                         )
                         LabeledContent("Kalorier/dag", value: "\(Int(tempDog.dailyCalories)) kcal")
                         LabeledContent("Protein", value: "\(Int(tempDog.dailyProteinGrams)) g")
                         LabeledContent("Fett", value: "\(Int(tempDog.dailyFatGrams)) g")
+                        LabeledContent("Kolhydrater", value: "\(Int(tempDog.dailyCarbGrams)) g")
                         LabeledContent("Vatten", value: "\(Int(tempDog.dailyWaterMl)) ml")
                     } else {
                         Text("Ange vikt för att se beräkning")
@@ -76,13 +87,22 @@ struct AddDogView: View {
                         hasAttemptedSave = true
                         saveDog()
                     }
+                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || parsedWeight == nil)
                     .disabled(!isFormValid)
                 }
             }
         }
     }
 
+    private var parsedWeight: Double? {
+        Double(weightText.replacingOccurrences(of: ",", with: "."))
+    }
+
     private func saveDog() {
+        guard let weight = parsedWeight else { return }
+
+        let dog = Dog(
+            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
         guard let weight = parsedWeight, !trimmedName.isEmpty else { return }
 
         let dog = Dog(
@@ -92,7 +112,8 @@ struct AddDogView: View {
             birthDate: birthDate,
             gender: gender,
             healthStatus: healthStatus,
-            activityLevel: activityLevel
+            activityLevel: activityLevel,
+            feedingGoal: feedingGoal
         )
         modelContext.insert(dog)
         dismiss()
@@ -133,6 +154,7 @@ struct EditDogView: View {
     @State private var gender: DogGender
     @State private var healthStatus: HealthStatus
     @State private var activityLevel: ActivityLevel
+    @State private var feedingGoal: FeedingGoal
     @State private var hasAttemptedSave = false
 
     init(dog: Dog) {
@@ -144,6 +166,7 @@ struct EditDogView: View {
         _gender = State(initialValue: dog.gender)
         _healthStatus = State(initialValue: dog.healthStatus)
         _activityLevel = State(initialValue: dog.activityLevel)
+        _feedingGoal = State(initialValue: dog.feedingGoal)
     }
 
     var body: some View {
@@ -169,11 +192,19 @@ struct EditDogView: View {
 
             Section("Hälsa & mål") {
                 Picker("Status", selection: $healthStatus) {
-                    ForEach(HealthStatus.allCases, id: \.self) { Text($0.rawValue) }
+                    ForEach(HealthStatus.profileOptions, id: \.self) { Text($0.rawValue) }
                 }
+                ContextDescription(text: healthStatus.description)
+
                 Picker("Aktivitetsnivå", selection: $activityLevel) {
                     ForEach(ActivityLevel.allCases, id: \.self) { Text($0.rawValue) }
                 }
+                ContextDescription(text: activityLevel.description)
+
+                Picker("Mål", selection: $feedingGoal) {
+                    ForEach(FeedingGoal.allCases, id: \.self) { Text($0.rawValue) }
+                }
+                ContextDescription(text: feedingGoal.description)
             }
 
             Section("Beräknat dagsbehov") {
@@ -185,11 +216,13 @@ struct EditDogView: View {
                         birthDate: birthDate,
                         gender: gender,
                         healthStatus: healthStatus,
-                        activityLevel: activityLevel
+                        activityLevel: activityLevel,
+                        feedingGoal: feedingGoal
                     )
                     LabeledContent("Kalorier/dag", value: "\(Int(tempDog.dailyCalories)) kcal")
                     LabeledContent("Protein", value: "\(Int(tempDog.dailyProteinGrams)) g")
                     LabeledContent("Fett", value: "\(Int(tempDog.dailyFatGrams)) g")
+                    LabeledContent("Kolhydrater", value: "\(Int(tempDog.dailyCarbGrams)) g")
                     LabeledContent("Vatten", value: "\(Int(tempDog.dailyWaterMl)) ml")
                 } else {
                     Text("Ange vikt för att se beräkning")
@@ -205,6 +238,7 @@ struct EditDogView: View {
                     hasAttemptedSave = true
                     saveChanges()
                 }
+                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || editedWeight == nil)
                 .disabled(!isFormValid)
             }
         }
@@ -219,6 +253,7 @@ struct EditDogView: View {
     private func saveChanges() {
         guard let editedWeight, !trimmedName.isEmpty else { return }
 
+        dog.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         dog.name = trimmedName
         dog.breed = breed
         dog.weightKg = editedWeight
@@ -226,6 +261,7 @@ struct EditDogView: View {
         dog.gender = gender
         dog.healthStatus = healthStatus
         dog.activityLevel = activityLevel
+        dog.feedingGoal = feedingGoal
 
         dismiss()
     }
@@ -254,5 +290,15 @@ private struct ValidationMessage: View {
         Text(text)
             .font(.footnote)
             .foregroundStyle(.red)
+    }
+}
+
+private struct ContextDescription: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
     }
 }
