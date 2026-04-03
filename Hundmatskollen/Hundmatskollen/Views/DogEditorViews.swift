@@ -12,15 +12,24 @@ struct AddDogView: View {
     @State private var gender: DogGender = .male
     @State private var healthStatus: HealthStatus = .healthy
     @State private var activityLevel: ActivityLevel = .moderate
+    @State private var hasAttemptedSave = false
 
     var body: some View {
         NavigationStack {
             Form {
                 Section("Om hunden") {
                     TextField("Namn", text: $name)
+                    if shouldShowNameError {
+                        ValidationMessage(text: "Ange hundens namn.")
+                    }
+
                     TextField("Ras", text: $breed)
                     TextField("Vikt (kg)", text: $weightText)
                         .keyboardType(.decimalPad)
+                    if shouldShowWeightError {
+                        ValidationMessage(text: "Ange en giltig vikt över 0 kg.")
+                    }
+
                     DatePicker("Födelsedatum", selection: $birthDate, displayedComponents: .date)
                     Picker("Kön", selection: $gender) {
                         ForEach(DogGender.allCases, id: \.self) { Text($0.rawValue) }
@@ -64,18 +73,20 @@ struct AddDogView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Spara") {
+                        hasAttemptedSave = true
                         saveDog()
                     }
-                    .disabled(name.isEmpty || weightText.isEmpty)
+                    .disabled(!isFormValid)
                 }
             }
         }
     }
 
     private func saveDog() {
-        let weight = Double(weightText.replacingOccurrences(of: ",", with: ".")) ?? 0
+        guard let weight = parsedWeight, !trimmedName.isEmpty else { return }
+
         let dog = Dog(
-            name: name,
+            name: trimmedName,
             breed: breed,
             weightKg: weight,
             birthDate: birthDate,
@@ -85,6 +96,28 @@ struct AddDogView: View {
         )
         modelContext.insert(dog)
         dismiss()
+    }
+
+    private var trimmedName: String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var parsedWeight: Double? {
+        let normalizedText = weightText.replacingOccurrences(of: ",", with: ".")
+        guard let value = Double(normalizedText), value > 0 else { return nil }
+        return value
+    }
+
+    private var isFormValid: Bool {
+        !trimmedName.isEmpty && parsedWeight != nil
+    }
+
+    private var shouldShowNameError: Bool {
+        hasAttemptedSave && trimmedName.isEmpty
+    }
+
+    private var shouldShowWeightError: Bool {
+        hasAttemptedSave && parsedWeight == nil
     }
 }
 
@@ -100,6 +133,7 @@ struct EditDogView: View {
     @State private var gender: DogGender
     @State private var healthStatus: HealthStatus
     @State private var activityLevel: ActivityLevel
+    @State private var hasAttemptedSave = false
 
     init(dog: Dog) {
         self.dog = dog
@@ -116,9 +150,17 @@ struct EditDogView: View {
         Form {
             Section("Om hunden") {
                 TextField("Namn", text: $name)
+                if shouldShowNameError {
+                    ValidationMessage(text: "Ange hundens namn.")
+                }
+
                 TextField("Ras", text: $breed)
                 TextField("Vikt (kg)", text: $weightText)
                     .keyboardType(.decimalPad)
+                if shouldShowWeightError {
+                    ValidationMessage(text: "Ange en giltig vikt över 0 kg.")
+                }
+
                 DatePicker("Födelsedatum", selection: $birthDate, displayedComponents: .date)
                 Picker("Kön", selection: $gender) {
                     ForEach(DogGender.allCases, id: \.self) { Text($0.rawValue) }
@@ -160,21 +202,24 @@ struct EditDogView: View {
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Spara") {
+                    hasAttemptedSave = true
                     saveChanges()
                 }
-                .disabled(name.isEmpty || editedWeight == nil)
+                .disabled(!isFormValid)
             }
         }
     }
 
     private var editedWeight: Double? {
-        Double(weightText.replacingOccurrences(of: ",", with: "."))
+        let normalizedText = weightText.replacingOccurrences(of: ",", with: ".")
+        guard let value = Double(normalizedText), value > 0 else { return nil }
+        return value
     }
 
     private func saveChanges() {
-        guard let editedWeight else { return }
+        guard let editedWeight, !trimmedName.isEmpty else { return }
 
-        dog.name = name
+        dog.name = trimmedName
         dog.breed = breed
         dog.weightKg = editedWeight
         dog.birthDate = birthDate
@@ -183,5 +228,31 @@ struct EditDogView: View {
         dog.activityLevel = activityLevel
 
         dismiss()
+    }
+
+    private var trimmedName: String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var isFormValid: Bool {
+        !trimmedName.isEmpty && editedWeight != nil
+    }
+
+    private var shouldShowNameError: Bool {
+        hasAttemptedSave && trimmedName.isEmpty
+    }
+
+    private var shouldShowWeightError: Bool {
+        hasAttemptedSave && editedWeight == nil
+    }
+}
+
+private struct ValidationMessage: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.footnote)
+            .foregroundStyle(.red)
     }
 }
