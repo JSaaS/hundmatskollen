@@ -21,23 +21,6 @@
 		084BBB0E2F80599800E8F443 /* HundmatskollenTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HundmatskollenTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		084BBB1A2F805D2C00E8F443 /* Exceptions for "HundmatskollenTests" folder in "Hundmatskollen" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				HundmatskollenTests.swift,
-			);
-			target = 084BBAD32F7FD2E800E8F443 /* Hundmatskollen */;
-		};
-		084BBB1B2F805DD400E8F443 /* Exceptions for "HundmatskollenTests" folder in "HundmatskollenTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				HundmatskollenTests.swift,
-			);
-			target = 084BBB0D2F80599800E8F443 /* HundmatskollenTests */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		084BBAD62F7FD2E800E8F443 /* Hundmatskollen */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -46,10 +29,6 @@
 		};
 		084BBB0F2F80599800E8F443 /* HundmatskollenTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				084BBB1A2F805D2C00E8F443 /* Exceptions for "HundmatskollenTests" folder in "Hundmatskollen" target */,
-				084BBB1B2F805DD400E8F443 /* Exceptions for "HundmatskollenTests" folder in "HundmatskollenTests" target */,
-			);
 			path = HundmatskollenTests;
 			sourceTree = "<group>";
 		};
