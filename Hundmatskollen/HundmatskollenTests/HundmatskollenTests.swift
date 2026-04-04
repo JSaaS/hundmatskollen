@@ -160,6 +160,41 @@ struct HundmatskollenTests {
         #expect(abs(recipe.totalFiber - 6) < 0.01)
     }
 
+    @Test("Planerat mål använder receptnamn när recept är länkat")
+    func plannedMealUsesRecipeNameWhenLinked() {
+        let dog = Dog(name: "Fido", weightKg: 12)
+        let recipe = Recipe(dog: dog, name: "Söndagsgryta")
+        let plannedMeal = PlannedMeal(
+            dog: dog,
+            recipe: recipe,
+            scheduledDate: Date(),
+            type: .dinner
+        )
+
+        #expect(plannedMeal.displayTitle == "Söndagsgryta")
+        #expect(plannedMeal.sourceLabel == "Recept")
+    }
+
+    @Test("Planerat mål faller tillbaka till eget namn eller måltidstyp")
+    func plannedMealFallsBackToCustomTitleOrMealType() {
+        let dog = Dog(name: "Fido", weightKg: 12)
+        let freeMeal = PlannedMeal(
+            dog: dog,
+            scheduledDate: Date(),
+            type: .lunch,
+            title: "Lätt lunch"
+        )
+        let unnamedMeal = PlannedMeal(
+            dog: dog,
+            scheduledDate: Date(),
+            type: .snack
+        )
+
+        #expect(freeMeal.displayTitle == "Lätt lunch")
+        #expect(freeMeal.sourceLabel == "Fri måltid")
+        #expect(unnamedMeal.displayTitle == MealType.snack.rawValue)
+    }
+
     @Test("Seed-data placerar ingredienser i rätt kategorier")
     func seedDataUsesExpectedCategories() {
         let salmon = Food.seedData().first { $0.name == "Lax" }

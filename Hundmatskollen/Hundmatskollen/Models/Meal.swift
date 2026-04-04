@@ -9,6 +9,28 @@ enum MealType: String, Codable, CaseIterable {
     case lunch     = "Lunch"
     case dinner    = "Middag"
     case snack     = "Snacks/Belöning"
+
+    var suggestedHour: Int {
+        switch self {
+        case .breakfast:
+            return 8
+        case .lunch:
+            return 12
+        case .dinner:
+            return 18
+        case .snack:
+            return 15
+        }
+    }
+
+    func suggestedDate(on date: Date, calendar: Calendar = .current) -> Date {
+        calendar.date(
+            bySettingHour: suggestedHour,
+            minute: 0,
+            second: 0,
+            of: date
+        ) ?? date
+    }
 }
 
 // MARK: - MealItem
@@ -78,6 +100,55 @@ final class Meal {
     var waterMl: Double {
         get { waterMlValue ?? 0 }
         set { waterMlValue = newValue }
+    }
+}
+
+// MARK: - PlannedMeal
+
+/// En planerad måltid för en specifik hund och dag.
+/// Skiljs från Meal eftersom plan och faktiskt utfall har olika livscykel.
+@Model
+final class PlannedMeal {
+    var dog: Dog?
+    var recipe: Recipe?
+    var scheduledDate: Date
+    var type: MealType
+    var title: String
+    var notes: String
+    var createdAt: Date
+
+    init(
+        dog: Dog? = nil,
+        recipe: Recipe? = nil,
+        scheduledDate: Date,
+        type: MealType = .dinner,
+        title: String = "",
+        notes: String = ""
+    ) {
+        self.dog = dog
+        self.recipe = recipe
+        self.scheduledDate = scheduledDate
+        self.type = type
+        self.title = title
+        self.notes = notes
+        self.createdAt = Date()
+    }
+
+    var displayTitle: String {
+        if let recipe {
+            return recipe.name
+        }
+
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedTitle.isEmpty {
+            return trimmedTitle
+        }
+
+        return type.rawValue
+    }
+
+    var sourceLabel: String {
+        recipe == nil ? "Fri måltid" : "Recept"
     }
 }
 

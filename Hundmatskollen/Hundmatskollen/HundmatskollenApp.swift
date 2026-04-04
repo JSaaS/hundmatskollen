@@ -10,6 +10,7 @@ struct HundmatskollenApp: App {
             Food.self,
             Meal.self,
             MealItem.self,
+            PlannedMeal.self,
             Recipe.self,
             RecipeItem.self,
         ])

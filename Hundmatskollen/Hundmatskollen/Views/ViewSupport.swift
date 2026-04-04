@@ -109,8 +109,11 @@ struct FoodDetailView: View {
 struct WeekEntry: Identifiable {
     let date: Date
     let meals: [Meal]
+    let plannedMeals: [PlannedMeal]
     let nutrition: DailyNutrition
     let progress: NutritionProgress
 
     var id: Date { date }
+    var totalEntryCount: Int { meals.count + plannedMeals.count }
+    var hasEntries: Bool { totalEntryCount > 0 }
 }

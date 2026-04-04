@@ -24,6 +24,8 @@ struct AddMealView: View {
     @State private var waterText = ""
     @State private var draftItems: [DraftMealItem] = []
     @State private var isPresentingAddFood = false
+    @State private var hasCustomizedTime = false
+    @State private var isApplyingSuggestedTime = false
 
     init(dog: Dog, initialDate: Date = Date(), initialRecipe: Recipe? = nil) {
         self.dog = dog
@@ -37,7 +39,7 @@ struct AddMealView: View {
         NavigationStack {
             Form {
                 Section("Måltid") {
-                    DatePicker("Tid", selection: $date, displayedComponents: [.date, .hourAndMinute])
+                    DatePicker("Tid", selection: dateBinding, displayedComponents: [.date, .hourAndMinute])
                     Picker("Typ", selection: $type) {
                         ForEach(MealType.allCases, id: \.self) { mealType in
                             Text(mealType.rawValue).tag(mealType)
@@ -143,11 +145,15 @@ struct AddMealView: View {
             AddFoodView()
         }
         .onAppear {
-            date = initialDate
+            applySuggestedTime(for: type, on: initialDate)
 
             if draftItems.isEmpty && !foods.isEmpty {
                 populateDraftItems()
             }
+        }
+        .onChange(of: type) { _, newType in
+            guard !hasCustomizedTime else { return }
+            applySuggestedTime(for: newType, on: date)
         }
     }
 
@@ -258,5 +264,24 @@ struct AddMealView: View {
         }
 
         return String(format: "%.1f", value).replacingOccurrences(of: ".", with: ",")
+    }
+
+    private func applySuggestedTime(for mealType: MealType, on baseDate: Date) {
+        isApplyingSuggestedTime = true
+        date = mealType.suggestedDate(on: baseDate)
+        isApplyingSuggestedTime = false
+    }
+
+    private var dateBinding: Binding<Date> {
+        Binding(
+            get: { date },
+            set: { newValue in
+                date = newValue
+
+                if !isApplyingSuggestedTime {
+                    hasCustomizedTime = true
+                }
+            }
+        )
     }
 }

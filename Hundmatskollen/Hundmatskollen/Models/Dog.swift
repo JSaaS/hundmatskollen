@@ -195,6 +195,7 @@ final class Dog {
 
     // Relationer
     @Relationship(deleteRule: .cascade) var meals: [Meal] = []
+    @Relationship(deleteRule: .cascade) var plannedMeals: [PlannedMeal] = []
     @Relationship(deleteRule: .cascade) var recipes: [Recipe] = []
 
     init(
