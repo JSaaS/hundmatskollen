@@ -42,6 +42,7 @@ final class Meal {
     var date: Date
     var type: MealType
     var notes: String
+    var waterMlValue: Double?
 
     @Relationship(deleteRule: .cascade) var items: [MealItem] = []
 
@@ -49,12 +50,14 @@ final class Meal {
         dog: Dog? = nil,
         date: Date = Date(),
         type: MealType = .dinner,
-        notes: String = ""
+        notes: String = "",
+        waterMl: Double = 0
     ) {
         self.dog   = dog
         self.date  = date
         self.type  = type
         self.notes = notes
+        self.waterMlValue = waterMl
     }
 
     // MARK: - Summerade näringsvärden för hela måltiden
@@ -65,6 +68,11 @@ final class Meal {
     var totalCarbs: Double    { items.reduce(0) { $0 + $1.carbs    } }
     var totalFiber: Double    { items.reduce(0) { $0 + $1.fiber    } }
     var totalGrams: Double    { items.reduce(0) { $0 + $1.grams    } }
+
+    var waterMl: Double {
+        get { waterMlValue ?? 0 }
+        set { waterMlValue = newValue }
+    }
 }
 
 // MARK: - DailyNutrition
@@ -76,6 +84,7 @@ struct DailyNutrition {
     var fat: Double      = 0
     var carbs: Double    = 0
     var fiber: Double    = 0
+    var waterMl: Double  = 0
 
     /// Beräknar hur stor andel av hundens dagsbehov som är uppfyllt (0–1)
     func progress(for dog: Dog) -> NutritionProgress {
@@ -83,17 +92,21 @@ struct DailyNutrition {
             calories: min(calories / dog.dailyCalories, 1.0),
             protein:  min(protein  / dog.dailyProteinGrams, 1.0),
             fat:      min(fat      / dog.dailyFatGrams, 1.0),
-            carbs:    min(carbs    / dog.dailyCarbGrams, 1.0)
+            carbs:    min(carbs    / dog.dailyCarbGrams, 1.0),
+            fiber:    min(fiber    / dog.dailyFiberGrams, 1.0),
+            water:    min(waterMl  / dog.dailyWaterMl, 1.0)
         )
     }
 }
 
-/// Progressvärden (0.0 – 1.0) för varje makronäringsämne
+/// Progressvärden (0.0 – 1.0) för dagens mål
 struct NutritionProgress {
     var calories: Double
     var protein: Double
     var fat: Double
     var carbs: Double
+    var fiber: Double
+    var water: Double
 }
 
 // MARK: - Hjälpfunktion: summera måltider för en dag
@@ -107,6 +120,7 @@ extension [Meal] {
             result.fat      += meal.totalFat
             result.carbs    += meal.totalCarbs
             result.fiber    += meal.totalFiber
+            result.waterMl  += meal.waterMl
         }
     }
 }

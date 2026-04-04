@@ -59,6 +59,8 @@ struct TodayView: View {
                             LabeledContent("Protein", value: "\(Int(selectedDog.dailyProteinGrams)) g")
                             LabeledContent("Fett", value: "\(Int(selectedDog.dailyFatGrams)) g")
                             LabeledContent("Kolhydrater", value: "\(Int(selectedDog.dailyCarbGrams)) g")
+                            LabeledContent("Fiber", value: "\(Int(selectedDog.dailyFiberGrams)) g")
+                            LabeledContent("Vätska", value: "\(Int(selectedDog.dailyWaterMl)) ml")
                         }
 
                         Section("Summering idag") {
@@ -85,6 +87,18 @@ struct TodayView: View {
                                 consumedText: "\(Int(todayNutrition.carbs)) / \(Int(selectedDog.dailyCarbGrams)) g",
                                 progress: todayProgress.carbs,
                                 tint: .green
+                            )
+                            NutritionProgressRow(
+                                title: "Fiber",
+                                consumedText: "\(Int(todayNutrition.fiber)) / \(Int(selectedDog.dailyFiberGrams)) g",
+                                progress: todayProgress.fiber,
+                                tint: .mint
+                            )
+                            NutritionProgressRow(
+                                title: "Vätska",
+                                consumedText: "\(Int(todayNutrition.waterMl)) / \(Int(selectedDog.dailyWaterMl)) ml",
+                                progress: todayProgress.water,
+                                tint: .blue
                             )
                         }
 
@@ -148,6 +162,12 @@ struct TodayView: View {
                                             .font(.subheadline)
                                             .foregroundStyle(.secondary)
 
+                                        if meal.waterMl > 0 {
+                                            Text("\(Int(meal.waterMl)) ml vätska")
+                                                .font(.subheadline)
+                                                .foregroundStyle(.secondary)
+                                        }
+
                                         if !meal.notes.isEmpty {
                                             Text(meal.notes)
                                                 .font(.footnote)
@@ -208,7 +228,7 @@ struct TodayView: View {
 
     private var todayProgress: NutritionProgress {
         guard let selectedDog else {
-            return NutritionProgress(calories: 0, protein: 0, fat: 0, carbs: 0)
+            return NutritionProgress(calories: 0, protein: 0, fat: 0, carbs: 0, fiber: 0, water: 0)
         }
 
         return todayNutrition.progress(for: selectedDog)

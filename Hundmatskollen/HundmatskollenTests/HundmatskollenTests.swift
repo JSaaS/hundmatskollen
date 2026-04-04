@@ -46,6 +46,15 @@ struct HundmatskollenTests {
         #expect(loseWeightDog.dailyCalories < maintainDog.dailyCalories)
     }
 
+    @Test("Dagligt fibermål är positivt och påverkas av målval")
+    func dailyFiberGoalIsPositiveAndAdjustsForGoal() {
+        let maintainDog = Dog(name: "Fido", weightKg: 20, feedingGoal: .maintain)
+        let loseWeightDog = Dog(name: "Fido", weightKg: 20, feedingGoal: .loseWeight)
+
+        #expect(maintainDog.dailyFiberGrams > 0)
+        #expect(loseWeightDog.dailyFiberGrams > maintainDog.dailyFiberGrams)
+    }
+
     @Test("Ogiltigt feedingGoalRawValue faller tillbaka till underhåll")
     func invalidFeedingGoalDefaultsToMaintain() {
         let dog = Dog(name: "Fido", weightKg: 10)
@@ -208,14 +217,27 @@ struct HundmatskollenTests {
 
         let breakfast = Meal(type: .breakfast)
         breakfast.items.append(MealItem(food: food, grams: 100))
+        breakfast.waterMl = 150
 
         let dinner = Meal(type: .dinner)
         dinner.items.append(MealItem(food: food, grams: 200))
+        dinner.waterMl = 250
 
         let daily = [breakfast, dinner].dailyNutrition()
 
         #expect(abs(daily.calories - 300) < 0.01)
         #expect(abs(daily.protein - 60) < 0.01)
+        #expect(abs(daily.waterMl - 400) < 0.01)
+    }
+
+    @Test("Vätska kan loggas utan ingredienser")
+    func waterOnlyMealContributesToDailyNutrition() {
+        let meal = Meal(type: .snack, waterMl: 275)
+
+        let daily = [meal].dailyNutrition()
+
+        #expect(daily.calories == 0)
+        #expect(daily.waterMl == 275)
     }
 
     @Test("NutritionProgress begränsas till max 1.0")
@@ -226,6 +248,8 @@ struct HundmatskollenTests {
         daily.protein = dog.dailyProteinGrams * 5
         daily.fat = dog.dailyFatGrams * 5
         daily.carbs = dog.dailyCarbGrams * 5
+        daily.fiber = dog.dailyFiberGrams * 5
+        daily.waterMl = dog.dailyWaterMl * 5
 
         let progress = daily.progress(for: dog)
 
@@ -233,5 +257,7 @@ struct HundmatskollenTests {
         #expect(progress.protein <= 1.0)
         #expect(progress.fat <= 1.0)
         #expect(progress.carbs <= 1.0)
+        #expect(progress.fiber <= 1.0)
+        #expect(progress.water <= 1.0)
     }
 }
