@@ -12,6 +12,7 @@ struct AddMealView: View {
     @Environment(\.modelContext) private var modelContext
 
     @Query(sort: \Food.name) private var foods: [Food]
+    @Query(sort: \Recipe.createdAt, order: .reverse) private var recipes: [Recipe]
 
     let dog: Dog
     private let initialDate: Date
@@ -93,6 +94,34 @@ struct AddMealView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+
+                if !availableRecipes.isEmpty {
+                    Section("Recept") {
+                        Text("Välj ett recept för att fylla i ingredienserna automatiskt.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+
+                        ForEach(availableRecipes) { recipe in
+                            Button {
+                                applyRecipe(recipe)
+                            } label: {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(recipe.name)
+                                            .foregroundStyle(.primary)
+                                        Text("\(recipe.items.count) ingredienser · \(Int(recipe.totalGrams)) g · \(Int(recipe.totalCalories)) kcal")
+                                            .font(.footnote)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "arrow.down.circle")
+                                        .foregroundStyle(.orange)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
             }
             .navigationTitle("Ny måltid")
             .navigationBarTitleDisplayMode(.inline)
@@ -128,28 +157,45 @@ struct AddMealView: View {
         }
     }
 
+    private var availableRecipes: [Recipe] {
+        recipes.filter { recipe in
+            guard let recipeDog = recipe.dog else { return false }
+            return recipeDog.persistentModelID == dog.persistentModelID
+        }
+    }
+
     private func addDraftItem() {
         draftItems.append(DraftMealItem())
     }
 
-    private func populateDraftItems() {
-        if let initialRecipe {
-            let recipeDraftItems = initialRecipe.items.compactMap { item -> DraftMealItem? in
-                guard
-                    let food = item.food,
-                    let index = foods.firstIndex(where: { $0.persistentModelID == food.persistentModelID })
-                else {
-                    return nil
-                }
-
-                var draftItem = DraftMealItem()
-                draftItem.selectedFoodIndex = index
-                draftItem.gramsText = formatGrams(item.grams)
-                return draftItem
+    private func applyRecipe(_ recipe: Recipe) {
+        let recipeDraftItems = recipe.items.compactMap { item -> DraftMealItem? in
+            guard
+                let food = item.food,
+                let index = foods.firstIndex(where: { $0.persistentModelID == food.persistentModelID })
+            else {
+                return nil
             }
 
-            if !recipeDraftItems.isEmpty {
-                draftItems = recipeDraftItems
+            var draftItem = DraftMealItem()
+            draftItem.selectedFoodIndex = index
+            draftItem.gramsText = formatGrams(item.grams)
+            return draftItem
+        }
+
+        guard !recipeDraftItems.isEmpty else { return }
+
+        draftItems = recipeDraftItems
+        if notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            notes = recipe.name
+        }
+    }
+
+    private func populateDraftItems() {
+        if let initialRecipe {
+            applyRecipe(initialRecipe)
+
+            if !draftItems.isEmpty {
                 return
             }
         }
