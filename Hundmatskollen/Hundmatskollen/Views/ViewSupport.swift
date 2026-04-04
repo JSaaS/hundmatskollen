@@ -56,15 +56,16 @@ struct FoodDetailView: View {
         List {
             Section("Översikt") {
                 LabeledContent("Kategori", value: food.category.rawValue)
+                LabeledContent("Enhet", value: food.quantityLabel)
                 if food.isCustom {
                     Label("Egen ingrediens", systemImage: "person.crop.circle.badge.plus")
                         .foregroundStyle(.orange)
                 }
-                LabeledContent("Kalorier", value: "\(Int(food.caloriesPer100g)) kcal / 100 g")
-                LabeledContent("Protein", value: "\(format(food.proteinPer100g)) g")
-                LabeledContent("Fett", value: "\(format(food.fatPer100g)) g")
-                LabeledContent("Kolhydrater", value: "\(format(food.carbsPer100g)) g")
-                LabeledContent("Fiber", value: "\(format(food.fiberPer100g)) g")
+                LabeledContent("Kalorier", value: "\(Int(food.caloriesPer100g)) kcal / \(food.nutritionBasisLabel)")
+                LabeledContent("Protein", value: "\(format(food.proteinPer100g)) g / \(food.nutritionBasisLabel)")
+                LabeledContent("Fett", value: "\(format(food.fatPer100g)) g / \(food.nutritionBasisLabel)")
+                LabeledContent("Kolhydrater", value: "\(format(food.carbsPer100g)) g / \(food.nutritionBasisLabel)")
+                LabeledContent("Fiber", value: "\(format(food.fiberPer100g)) g / \(food.nutritionBasisLabel)")
             }
 
             if food.isDangerousForDogs {

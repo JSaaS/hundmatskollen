@@ -98,6 +98,43 @@ struct HundmatskollenTests {
         #expect(customFood.isDangerousForDogs == false)
     }
 
+    @Test("Ingrediens kan använda milliliter som föredragen enhet")
+    func foodCanUseMillilitersAsPreferredUnit() {
+        let customFood = Food(
+            name: "Benbuljong",
+            category: .other,
+            caloriesPer100g: 15,
+            proteinPer100g: 3,
+            fatPer100g: 0,
+            carbsPer100g: 0,
+            fiberPer100g: 0,
+            isCustom: true,
+            preferredUnit: .milliliters
+        )
+
+        #expect(customFood.preferredUnit == .milliliters)
+        #expect(customFood.quantityLabel == "ml")
+        #expect(customFood.quantityFieldLabel == "Mängd (ml)")
+    }
+
+    @Test("Ogiltig enhetslagring faller tillbaka till gram")
+    func invalidPreferredUnitDefaultsToGrams() {
+        let food = Food(
+            name: "Mjölk",
+            category: .dairy,
+            caloriesPer100g: 60,
+            proteinPer100g: 3,
+            fatPer100g: 3,
+            carbsPer100g: 5,
+            fiberPer100g: 0,
+            isCustom: true
+        )
+
+        food.preferredUnitRawValue = "invalid"
+
+        #expect(food.preferredUnit == .grams)
+    }
+
     @Test("Egen ingrediens fungerar i recept- och måltidssummering")
     func customFoodParticipatesInMealAndRecipeTotals() {
         let customFood = Food(
@@ -238,6 +275,29 @@ struct HundmatskollenTests {
 
         #expect(daily.calories == 0)
         #expect(daily.waterMl == 275)
+    }
+
+    @Test("Ingredienser med ml-enhet räknas som vätska")
+    func milliliterIngredientContributesToFluidGoal() {
+        let broth = Food(
+            name: "Benbuljong",
+            category: .other,
+            caloriesPer100g: 12,
+            proteinPer100g: 2,
+            fatPer100g: 0,
+            carbsPer100g: 0,
+            fiberPer100g: 0,
+            isCustom: true,
+            preferredUnit: .milliliters
+        )
+
+        let meal = Meal(type: .dinner)
+        meal.items.append(MealItem(food: broth, grams: 50))
+
+        let daily = [meal].dailyNutrition()
+
+        #expect(meal.totalWaterMl == 50)
+        #expect(daily.waterMl == 50)
     }
 
     @Test("NutritionProgress begränsas till max 1.0")
