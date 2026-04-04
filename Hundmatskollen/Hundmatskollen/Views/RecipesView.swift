@@ -8,6 +8,7 @@ struct RecipesView: View {
     @State private var selectedDogID: PersistentIdentifier?
     @State private var searchText = ""
     @State private var isPresentingAddRecipe = false
+    @State private var isPresentingAddFood = false
 
     private var selectedDog: Dog? {
         if let selectedDogID {
@@ -63,10 +64,20 @@ struct RecipesView: View {
             .searchable(text: $searchText, prompt: "Sök recept")
             .toolbar {
                 if selectedDog != nil {
-                    Button {
-                        isPresentingAddRecipe = true
+                    Menu {
+                        Button {
+                            isPresentingAddRecipe = true
+                        } label: {
+                            Label("Nytt recept", systemImage: "fork.knife")
+                        }
+
+                        Button {
+                            isPresentingAddFood = true
+                        } label: {
+                            Label("Ny ingrediens", systemImage: "person.crop.circle.badge.plus")
+                        }
                     } label: {
-                        Label("Nytt recept", systemImage: "plus")
+                        Label("Skapa", systemImage: "plus")
                     }
                 }
             }
@@ -74,6 +85,9 @@ struct RecipesView: View {
                 if let selectedDog {
                     AddRecipeView(dog: selectedDog)
                 }
+            }
+            .sheet(isPresented: $isPresentingAddFood) {
+                AddFoodView()
             }
         }
         .onAppear {
@@ -228,6 +242,7 @@ struct AddRecipeView: View {
     @State private var name = ""
     @State private var notes = ""
     @State private var draftItems: [DraftRecipeItem] = []
+    @State private var isPresentingAddFood = false
 
     var body: some View {
         NavigationStack {
@@ -247,7 +262,7 @@ struct AddRecipeView: View {
                                 Picker("Ingrediens", selection: $item.selectedFoodIndex) {
                                     ForEach(Array(foods.indices), id: \.self) { index in
                                         let food = foods[index]
-                                        Text("\(food.category.icon) \(food.name)").tag(index)
+                                        Text(food.pickerTitle).tag(index)
                                     }
                                 }
 
@@ -268,6 +283,12 @@ struct AddRecipeView: View {
                             addDraftItem()
                         } label: {
                             Label("Lägg till ingrediens", systemImage: "plus.circle")
+                        }
+
+                        Button {
+                            isPresentingAddFood = true
+                        } label: {
+                            Label("Skapa egen ingrediens", systemImage: "person.crop.circle.badge.plus")
                         }
                     }
                 }
@@ -300,6 +321,9 @@ struct AddRecipeView: View {
                     .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || validDraftItems.isEmpty)
                 }
             }
+        }
+        .sheet(isPresented: $isPresentingAddFood) {
+            AddFoodView()
         }
         .onAppear {
             if draftItems.isEmpty && !foods.isEmpty {

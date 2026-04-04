@@ -1,5 +1,31 @@
 import SwiftUI
 
+extension Food {
+    var pickerTitle: String {
+        if isCustom {
+            return "\(category.icon) \(name) • Egen"
+        }
+
+        return "\(category.icon) \(name)"
+    }
+}
+
+struct FoodRowLabel: View {
+    let food: Food
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(food.category.icon)
+            Text(food.name)
+
+            if food.isCustom {
+                Image(systemName: "person.crop.circle.badge.plus")
+                    .foregroundStyle(.orange)
+            }
+        }
+    }
+}
+
 struct NutritionProgressRow: View {
     let title: String
     let consumedText: String
@@ -28,6 +54,10 @@ struct FoodDetailView: View {
         List {
             Section("Översikt") {
                 LabeledContent("Kategori", value: food.category.rawValue)
+                if food.isCustom {
+                    Label("Egen ingrediens", systemImage: "person.crop.circle.badge.plus")
+                        .foregroundStyle(.orange)
+                }
                 LabeledContent("Kalorier", value: "\(Int(food.caloriesPer100g)) kcal / 100 g")
                 LabeledContent("Protein", value: "\(format(food.proteinPer100g)) g")
                 LabeledContent("Fett", value: "\(format(food.fatPer100g)) g")
