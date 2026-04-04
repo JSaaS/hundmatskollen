@@ -4,12 +4,15 @@ import SwiftData
 struct WeekView: View {
     @Query(sort: \Dog.createdAt) private var dogs: [Dog]
     @Query(sort: \Meal.date, order: .reverse) private var meals: [Meal]
+    @Query(sort: \PlannedMeal.scheduledDate, order: .forward) private var plannedMeals: [PlannedMeal]
 
     @State private var selectedDogID: PersistentIdentifier?
     @State private var selectedRegistrationDate: Date?
     @State private var selectedDay = Date()
     @State private var isPresentingAddMeal = false
+    @State private var isPresentingPlannedMealEditor = false
     @State private var displayedWeekAnchor = Date()
+    @State private var plannedMealToEdit: PlannedMeal?
 
     private var selectedDog: Dog? {
         if let selectedDogID {
@@ -25,46 +28,46 @@ struct WeekView: View {
                 if selectedDog != nil {
                     ScrollView {
                         VStack(alignment: .leading, spacing: 20) {
-                        if dogs.count > 1 {
+                            if dogs.count > 1 {
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text("Hund")
                                         .font(.headline)
-                                Picker("Aktiv hund", selection: selectedDogBinding) {
-                                    ForEach(dogs) { dog in
-                                        Text(dog.name).tag(dog.persistentModelID)
+                                    Picker("Aktiv hund", selection: selectedDogBinding) {
+                                        ForEach(dogs) { dog in
+                                            Text(dog.name).tag(dog.persistentModelID)
+                                        }
                                     }
+                                    .pickerStyle(.menu)
                                 }
-                                .pickerStyle(.menu)
                             }
-                        }
 
                             VStack(spacing: 12) {
-                            HStack {
-                                Button {
-                                    moveWeek(by: -1)
-                                } label: {
-                                    Image(systemName: "chevron.left")
+                                HStack {
+                                    Button {
+                                        moveWeek(by: -1)
+                                    } label: {
+                                        Image(systemName: "chevron.left")
+                                    }
+
+                                    Spacer()
+
+                                    VStack(spacing: 4) {
+                                        Text("Vecka \(displayedWeekNumber)")
+                                            .font(.headline)
+                                        Text(displayedWeekRangeText)
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                    }
+
+                                    Spacer()
+
+                                    Button {
+                                        moveWeek(by: 1)
+                                    } label: {
+                                        Image(systemName: "chevron.right")
+                                    }
                                 }
-
-                                Spacer()
-
-                                VStack(spacing: 4) {
-                                    Text("Vecka \(displayedWeekNumber)")
-                                        .font(.headline)
-                                    Text(displayedWeekRangeText)
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                }
-
-                                Spacer()
-
-                                Button {
-                                    moveWeek(by: 1)
-                                } label: {
-                                    Image(systemName: "chevron.right")
-                                }
-                            }
-                            .buttonStyle(.plain)
+                                .buttonStyle(.plain)
                                 LazyVGrid(columns: weekColumns, spacing: 8) {
                                     ForEach(weekEntries) { entry in
                                         Button {
@@ -100,6 +103,15 @@ struct WeekView: View {
                                 }
 
                                 Button {
+                                    plannedMealToEdit = nil
+                                    isPresentingPlannedMealEditor = true
+                                } label: {
+                                    Label("Planera mål för vald dag", systemImage: "calendar.badge.plus")
+                                        .font(.subheadline.weight(.medium))
+                                }
+                                .buttonStyle(.borderless)
+
+                                Button {
                                     selectedRegistrationDate = defaultRegistrationDate(for: selectedDay)
                                     isPresentingAddMeal = true
                                 } label: {
@@ -109,12 +121,58 @@ struct WeekView: View {
                                 .buttonStyle(.borderless)
 
                                 if let selectedEntry {
-                                    if selectedEntry.meals.isEmpty {
-                                        Text(selectedEntry.date > todayStartOfDay ? "Ingen planering ännu" : "Ingen loggning")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                    } else {
+                                    if !selectedEntry.plannedMeals.isEmpty {
                                         VStack(alignment: .leading, spacing: 8) {
+                                            Text("Planerade mål")
+                                                .font(.subheadline.weight(.semibold))
+                                                .foregroundStyle(.secondary)
+
+                                            ForEach(selectedEntry.plannedMeals) { plannedMeal in
+                                                Button {
+                                                    plannedMealToEdit = plannedMeal
+                                                    isPresentingPlannedMealEditor = true
+                                                } label: {
+                                                    HStack(alignment: .top, spacing: 12) {
+                                                        Image(systemName: "calendar.badge.clock")
+                                                            .foregroundStyle(.blue)
+
+                                                        VStack(alignment: .leading, spacing: 2) {
+                                                            Text(plannedMeal.displayTitle)
+                                                                .font(.subheadline.weight(.medium))
+                                                                .foregroundStyle(.primary)
+                                                            Text(plannedMeal.scheduledDate.formatted(date: .omitted, time: .shortened))
+                                                                .font(.footnote)
+                                                                .foregroundStyle(.secondary)
+                                                            Text(plannedMeal.sourceLabel)
+                                                                .font(.caption)
+                                                                .foregroundStyle(.blue)
+
+                                                            if !plannedMeal.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                                                Text(plannedMeal.notes)
+                                                                    .font(.caption)
+                                                                    .foregroundStyle(.secondary)
+                                                                    .multilineTextAlignment(.leading)
+                                                            }
+                                                        }
+
+                                                        Spacer()
+
+                                                        Image(systemName: "chevron.right")
+                                                            .font(.caption.weight(.semibold))
+                                                            .foregroundStyle(.tertiary)
+                                                    }
+                                                }
+                                                .buttonStyle(.plain)
+                                            }
+                                        }
+                                    }
+
+                                    if !selectedEntry.meals.isEmpty {
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            Text("Loggade mål")
+                                                .font(.subheadline.weight(.semibold))
+                                                .foregroundStyle(.secondary)
+
                                             ForEach(selectedEntry.meals) { meal in
                                                 VStack(alignment: .leading, spacing: 2) {
                                                     Text(mealTitle(for: meal))
@@ -126,6 +184,12 @@ struct WeekView: View {
                                                 }
                                             }
                                         }
+                                    }
+
+                                    if !selectedEntry.hasEntries {
+                                        Text(selectedEntry.date > todayStartOfDay ? "Ingen planering ännu" : "Ingen loggning")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
                                     }
                                 }
                             }
@@ -151,6 +215,15 @@ struct WeekView: View {
                     AddMealView(
                         dog: selectedDog,
                         initialDate: selectedRegistrationDate ?? Date()
+                    )
+                }
+            }
+            .sheet(isPresented: $isPresentingPlannedMealEditor) {
+                if let selectedDog {
+                    PlannedMealEditorView(
+                        dog: selectedDog,
+                        initialDate: defaultRegistrationDate(for: selectedDay),
+                        plannedMeal: plannedMealToEdit
                     )
                 }
             }
@@ -192,11 +265,18 @@ struct WeekView: View {
                 return mealDog.persistentModelID == selectedDog.persistentModelID &&
                     isoCalendar.isDate(meal.date, inSameDayAs: date)
             }
+            let dayPlannedMeals = plannedMeals.filter { plannedMeal in
+                guard let plannedDog = plannedMeal.dog else { return false }
+
+                return plannedDog.persistentModelID == selectedDog.persistentModelID &&
+                    isoCalendar.isDate(plannedMeal.scheduledDate, inSameDayAs: date)
+            }
             let nutrition = dayMeals.dailyNutrition()
 
             return WeekEntry(
                 date: date,
                 meals: dayMeals,
+                plannedMeals: dayPlannedMeals,
                 nutrition: nutrition,
                 progress: nutrition.progress(for: selectedDog)
             )
@@ -243,9 +323,15 @@ struct WeekView: View {
             return "Idag"
         }
         if selectedEntry.date > todayStartOfDay {
-            return selectedEntry.meals.isEmpty ? "Kommande dag" : "Planerad/loggad"
+            return selectedEntry.hasEntries ? "Planerad/loggad" : "Kommande dag"
         }
-        return selectedEntry.meals.isEmpty ? "Ingen loggning" : "Loggad dag"
+        if !selectedEntry.meals.isEmpty {
+            return "Loggad dag"
+        }
+        if !selectedEntry.plannedMeals.isEmpty {
+            return "Planerad dag"
+        }
+        return "Ingen loggning"
     }
 
     private var dayStatusColor: Color {
@@ -254,9 +340,15 @@ struct WeekView: View {
             return .orange
         }
         if selectedEntry.date > todayStartOfDay {
+            return selectedEntry.hasEntries ? .blue : .secondary
+        }
+        if !selectedEntry.meals.isEmpty {
+            return .green
+        }
+        if !selectedEntry.plannedMeals.isEmpty {
             return .blue
         }
-        return selectedEntry.meals.isEmpty ? .secondary : .green
+        return .secondary
     }
 
     private var displayedWeekRangeText: String {
@@ -324,7 +416,7 @@ private struct WeekCalendarDayCell: View {
                 .fill(statusColor)
                 .frame(width: 8, height: 8)
 
-            Text("\(entry.meals.count)")
+            Text("\(entry.totalEntryCount)")
                 .font(.caption2.weight(.medium))
                 .foregroundStyle(isSelected ? .white.opacity(0.9) : .secondary)
         }
@@ -341,10 +433,16 @@ private struct WeekCalendarDayCell: View {
         if isToday {
             return .orange
         }
+        if !entry.meals.isEmpty {
+            return .green
+        }
+        if !entry.plannedMeals.isEmpty {
+            return .blue
+        }
         if entry.meals.isEmpty {
             return isFuture ? .blue : .secondary.opacity(0.5)
         }
-        return .green
+        return .secondary.opacity(0.5)
     }
 
     private var backgroundStyle: some ShapeStyle {
@@ -365,5 +463,178 @@ private struct WeekCalendarDayCell: View {
             return .orange.opacity(0.4)
         }
         return Color(.separator)
+    }
+}
+
+private struct PlannedMealEditorView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+
+    @Query(sort: \Recipe.createdAt, order: .reverse) private var recipes: [Recipe]
+
+    let dog: Dog
+    let initialDate: Date
+    let plannedMeal: PlannedMeal?
+
+    @State private var scheduledDate: Date
+    @State private var mealType: MealType
+    @State private var title: String
+    @State private var notes: String
+    @State private var selectedRecipeID: PersistentIdentifier?
+    @State private var isPresentingDeleteConfirmation = false
+    @State private var hasCustomizedTime = false
+    @State private var isApplyingSuggestedTime = false
+
+    init(dog: Dog, initialDate: Date, plannedMeal: PlannedMeal?) {
+        self.dog = dog
+        self.initialDate = initialDate
+        self.plannedMeal = plannedMeal
+        let initialMealType = plannedMeal?.type ?? .dinner
+        let initialScheduledDate = plannedMeal?.scheduledDate ?? initialMealType.suggestedDate(on: initialDate)
+        _scheduledDate = State(initialValue: initialScheduledDate)
+        _mealType = State(initialValue: initialMealType)
+        _title = State(initialValue: plannedMeal?.recipe == nil ? (plannedMeal?.title ?? "") : "")
+        _notes = State(initialValue: plannedMeal?.notes ?? "")
+        _selectedRecipeID = State(initialValue: plannedMeal?.recipe?.persistentModelID)
+    }
+
+    private var availableRecipes: [Recipe] {
+        recipes.filter { recipe in
+            recipe.dog?.persistentModelID == dog.persistentModelID
+        }
+    }
+
+    private var selectedRecipe: Recipe? {
+        guard let selectedRecipeID else { return nil }
+        return availableRecipes.first { $0.persistentModelID == selectedRecipeID }
+    }
+
+    private var canSave: Bool {
+        selectedRecipe != nil || !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Planering") {
+                    DatePicker("Tid", selection: scheduledDateBinding, displayedComponents: [.date, .hourAndMinute])
+
+                    Picker("Typ", selection: $mealType) {
+                        ForEach(MealType.allCases, id: \.self) { type in
+                            Text(type.rawValue).tag(type)
+                        }
+                    }
+                }
+
+                Section("Innehåll") {
+                    Picker("Recept", selection: $selectedRecipeID) {
+                        Text("Fri måltid").tag(Optional<PersistentIdentifier>.none)
+                        ForEach(availableRecipes) { recipe in
+                            Text(recipe.name).tag(Optional(recipe.persistentModelID))
+                        }
+                    }
+
+                    if selectedRecipe == nil {
+                        TextField("Namn på planerat mål", text: $title)
+                    } else if let selectedRecipe {
+                        LabeledContent("Valt recept", value: selectedRecipe.name)
+                    }
+
+                    TextField("Anteckning", text: $notes, axis: .vertical)
+                        .lineLimit(2...4)
+                }
+
+                if plannedMeal != nil {
+                    Section("Hantera") {
+                        Button(role: .destructive) {
+                            isPresentingDeleteConfirmation = true
+                        } label: {
+                            Label("Ta bort planerat mål", systemImage: "trash")
+                        }
+                    }
+                }
+            }
+            .navigationTitle(plannedMeal == nil ? "Planera mål" : "Redigera plan")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Avbryt") {
+                        dismiss()
+                    }
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Spara") {
+                        savePlannedMeal()
+                    }
+                    .disabled(!canSave)
+                }
+            }
+            .alert("Ta bort planerat mål?", isPresented: $isPresentingDeleteConfirmation) {
+                Button("Avbryt", role: .cancel) {}
+                Button("Ta bort", role: .destructive) {
+                    deletePlannedMeal()
+                }
+            } message: {
+                Text("Det planerade målet tas bort från veckovyn.")
+            }
+        }
+        .onChange(of: mealType) { _, newType in
+            guard !hasCustomizedTime else { return }
+            applySuggestedTime(for: newType, on: scheduledDate)
+        }
+    }
+
+    private func savePlannedMeal() {
+        let meal = plannedMeal ?? PlannedMeal(dog: dog, scheduledDate: scheduledDate)
+        meal.dog = dog
+        meal.scheduledDate = scheduledDate
+        meal.type = mealType
+        meal.recipe = selectedRecipe
+        meal.title = selectedRecipe == nil ? title.trimmingCharacters(in: .whitespacesAndNewlines) : ""
+        meal.notes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if plannedMeal == nil {
+            modelContext.insert(meal)
+        }
+
+        do {
+            try modelContext.save()
+            dismiss()
+        } catch {
+            assertionFailure("Kunde inte spara planerat mål: \(error)")
+        }
+    }
+
+    private func deletePlannedMeal() {
+        guard let plannedMeal else { return }
+
+        modelContext.delete(plannedMeal)
+
+        do {
+            try modelContext.save()
+            dismiss()
+        } catch {
+            assertionFailure("Kunde inte ta bort planerat mål: \(error)")
+        }
+    }
+
+    private func applySuggestedTime(for mealType: MealType, on baseDate: Date) {
+        isApplyingSuggestedTime = true
+        scheduledDate = mealType.suggestedDate(on: baseDate)
+        isApplyingSuggestedTime = false
+    }
+
+    private var scheduledDateBinding: Binding<Date> {
+        Binding(
+            get: { scheduledDate },
+            set: { newValue in
+                scheduledDate = newValue
+
+                if !isApplyingSuggestedTime {
+                    hasCustomizedTime = true
+                }
+            }
+        )
     }
 }
