@@ -7,6 +7,7 @@ struct WeekView: View {
 
     @State private var selectedDogID: PersistentIdentifier?
     @State private var selectedRegistrationDate: Date?
+    @State private var selectedDay = Date()
     @State private var isPresentingAddMeal = false
     @State private var displayedWeekAnchor = Date()
 
@@ -21,10 +22,13 @@ struct WeekView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if let selectedDog {
-                    List {
+                if selectedDog != nil {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 20) {
                         if dogs.count > 1 {
-                            Section("Hund") {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Hund")
+                                        .font(.headline)
                                 Picker("Aktiv hund", selection: selectedDogBinding) {
                                     ForEach(dogs) { dog in
                                         Text(dog.name).tag(dog.persistentModelID)
@@ -34,7 +38,7 @@ struct WeekView: View {
                             }
                         }
 
-                        Section {
+                            VStack(spacing: 12) {
                             HStack {
                                 Button {
                                     moveWeek(by: -1)
@@ -61,84 +65,77 @@ struct WeekView: View {
                                 }
                             }
                             .buttonStyle(.plain)
-                        }
+                                LazyVGrid(columns: weekColumns, spacing: 8) {
+                                    ForEach(weekEntries) { entry in
+                                        Button {
+                                            selectedDay = entry.date
+                                        } label: {
+                                            WeekCalendarDayCell(
+                                                entry: entry,
+                                                isSelected: isoCalendar.isDate(entry.date, inSameDayAs: selectedDay),
+                                                isToday: isoCalendar.isDateInToday(entry.date),
+                                                isFuture: entry.date > todayStartOfDay
+                                            )
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                            }
 
-                        Section("Veckoöversikt") {
-                            LabeledContent("Mål per dag", value: "\(Int(selectedDog.dailyCalories)) kcal")
-                            LabeledContent("Mål protein", value: "\(Int(selectedDog.dailyProteinGrams)) g")
-                            LabeledContent("Mål fett", value: "\(Int(selectedDog.dailyFatGrams)) g")
-                            LabeledContent("Mål fiber", value: "\(Int(selectedDog.dailyFiberGrams)) g")
-                            LabeledContent("Mål vätska", value: "\(Int(selectedDog.dailyWaterMl)) ml")
-                        }
-
-                        Section("Veckodagar") {
-                            ForEach(weekEntries) { entry in
-                                VStack(alignment: .leading, spacing: 10) {
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(entry.date, format: .dateTime.weekday(.wide))
-                                                .font(.headline)
-                                            Text(entry.date, format: .dateTime.day().month(.abbreviated))
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(selectedEntry?.date.formatted(.dateTime.weekday(.wide)) ?? "")
+                                            .font(.headline)
+                                        if let selectedEntry {
+                                            Text(selectedEntry.date, format: .dateTime.day().month(.abbreviated))
                                                 .font(.subheadline)
                                                 .foregroundStyle(.secondary)
                                         }
-                                        Spacer()
-                                        Text("\(entry.meals.count) måltider")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
                                     }
+                                    Spacer()
+                                    Text(dayStatusText)
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(dayStatusColor)
+                                }
 
-                                    Button {
-                                        selectedRegistrationDate = defaultRegistrationDate(for: entry.date)
-                                        isPresentingAddMeal = true
-                                    } label: {
-                                        Label("Registrera måltid för den här dagen", systemImage: "plus.circle")
-                                            .font(.subheadline.weight(.medium))
-                                    }
-                                    .buttonStyle(.borderless)
+                                Button {
+                                    selectedRegistrationDate = defaultRegistrationDate(for: selectedDay)
+                                    isPresentingAddMeal = true
+                                } label: {
+                                    Label("Registrera måltid för vald dag", systemImage: "plus.circle")
+                                        .font(.subheadline.weight(.medium))
+                                }
+                                .buttonStyle(.borderless)
 
-                                    if entry.meals.isEmpty {
-                                        Text("Ingen loggning")
+                                if let selectedEntry {
+                                    if selectedEntry.meals.isEmpty {
+                                        Text(selectedEntry.date > todayStartOfDay ? "Ingen planering ännu" : "Ingen loggning")
                                             .font(.subheadline)
                                             .foregroundStyle(.secondary)
                                     } else {
-                                        NutritionProgressRow(
-                                            title: "Kalorier",
-                                            consumedText: "\(Int(entry.nutrition.calories)) / \(Int(selectedDog.dailyCalories)) kcal",
-                                            progress: entry.progress.calories,
-                                            tint: .orange
-                                        )
-                                        NutritionProgressRow(
-                                            title: "Protein",
-                                            consumedText: "\(Int(entry.nutrition.protein)) / \(Int(selectedDog.dailyProteinGrams)) g",
-                                            progress: entry.progress.protein,
-                                            tint: .red
-                                        )
-                                        NutritionProgressRow(
-                                            title: "Fiber",
-                                            consumedText: "\(Int(entry.nutrition.fiber)) / \(Int(selectedDog.dailyFiberGrams)) g",
-                                            progress: entry.progress.fiber,
-                                            tint: .mint
-                                        )
-                                        NutritionProgressRow(
-                                            title: "Vätska",
-                                            consumedText: "\(Int(entry.nutrition.waterMl)) / \(Int(selectedDog.dailyWaterMl)) ml",
-                                            progress: entry.progress.water,
-                                            tint: .blue
-                                        )
-
-                                        HStack {
-                                            Text("Fett \(Int(entry.nutrition.fat)) g")
-                                            Spacer()
-                                            Text("Kolhydrater \(Int(entry.nutrition.carbs)) g")
+                                        VStack(alignment: .leading, spacing: 8) {
+                                            ForEach(selectedEntry.meals) { meal in
+                                                VStack(alignment: .leading, spacing: 2) {
+                                                    Text(mealTitle(for: meal))
+                                                        .font(.subheadline.weight(.medium))
+                                                        .foregroundStyle(.primary)
+                                                    Text(meal.date.formatted(date: .omitted, time: .shortened))
+                                                        .font(.footnote)
+                                                        .foregroundStyle(.secondary)
+                                                }
+                                            }
                                         }
-                                        .font(.footnote)
-                                        .foregroundStyle(.secondary)
                                     }
                                 }
-                                .padding(.vertical, 4)
                             }
+                            .padding(16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .fill(Color(.secondarySystemBackground))
+                            )
                         }
+                        .padding()
                     }
                 } else {
                     ContentUnavailableView(
@@ -174,6 +171,7 @@ struct WeekView: View {
             }
 
             displayedWeekAnchor = Date()
+            syncSelectedDay()
         }
     }
 
@@ -212,6 +210,14 @@ struct WeekView: View {
         return calendar
     }
 
+    private var weekColumns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 8), count: 7)
+    }
+
+    private var todayStartOfDay: Date {
+        isoCalendar.startOfDay(for: Date())
+    }
+
     private var displayedWeekInterval: DateInterval {
         isoCalendar.dateInterval(of: .weekOfYear, for: displayedWeekAnchor) ?? DateInterval(start: isoCalendar.startOfDay(for: displayedWeekAnchor), duration: 60 * 60 * 24 * 7)
     }
@@ -227,6 +233,32 @@ struct WeekView: View {
         isoCalendar.component(.weekOfYear, from: displayedWeekInterval.start)
     }
 
+    private var selectedEntry: WeekEntry? {
+        weekEntries.first { isoCalendar.isDate($0.date, inSameDayAs: selectedDay) }
+    }
+
+    private var dayStatusText: String {
+        guard let selectedEntry else { return "" }
+        if isoCalendar.isDateInToday(selectedEntry.date) {
+            return "Idag"
+        }
+        if selectedEntry.date > todayStartOfDay {
+            return selectedEntry.meals.isEmpty ? "Kommande dag" : "Planerad/loggad"
+        }
+        return selectedEntry.meals.isEmpty ? "Ingen loggning" : "Loggad dag"
+    }
+
+    private var dayStatusColor: Color {
+        guard let selectedEntry else { return .secondary }
+        if isoCalendar.isDateInToday(selectedEntry.date) {
+            return .orange
+        }
+        if selectedEntry.date > todayStartOfDay {
+            return .blue
+        }
+        return selectedEntry.meals.isEmpty ? .secondary : .green
+    }
+
     private var displayedWeekRangeText: String {
         let formatter = DateIntervalFormatter()
         formatter.locale = Locale(identifier: "sv_SE")
@@ -240,6 +272,19 @@ struct WeekView: View {
 
     private func moveWeek(by value: Int) {
         displayedWeekAnchor = isoCalendar.date(byAdding: .weekOfYear, value: value, to: displayedWeekAnchor) ?? displayedWeekAnchor
+        syncSelectedDay()
+    }
+
+    private func syncSelectedDay() {
+        if isoCalendar.isDate(selectedDay, equalTo: displayedWeekAnchor, toGranularity: .weekOfYear) {
+            return
+        }
+
+        if weekDates.contains(where: { isoCalendar.isDateInToday($0) }) {
+            selectedDay = Date()
+        } else {
+            selectedDay = displayedWeekInterval.start
+        }
     }
 
     private func defaultRegistrationDate(for day: Date) -> Date {
@@ -248,5 +293,77 @@ struct WeekView: View {
         }
 
         return isoCalendar.date(bySettingHour: 12, minute: 0, second: 0, of: day) ?? day
+    }
+
+    private func mealTitle(for meal: Meal) -> String {
+        let trimmedNotes = meal.notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedNotes.isEmpty {
+            return trimmedNotes
+        }
+        return meal.type.rawValue
+    }
+}
+
+private struct WeekCalendarDayCell: View {
+    let entry: WeekEntry
+    let isSelected: Bool
+    let isToday: Bool
+    let isFuture: Bool
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Text(entry.date, format: .dateTime.weekday(.narrow))
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Text(entry.date, format: .dateTime.day())
+                .font(.headline)
+                .foregroundStyle(isSelected ? .white : .primary)
+
+            Circle()
+                .fill(statusColor)
+                .frame(width: 8, height: 8)
+
+            Text("\(entry.meals.count)")
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(isSelected ? .white.opacity(0.9) : .secondary)
+        }
+        .frame(maxWidth: .infinity, minHeight: 92)
+        .padding(.vertical, 10)
+        .background(backgroundStyle)
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(borderColor, lineWidth: isSelected ? 0 : 1)
+        )
+    }
+
+    private var statusColor: Color {
+        if isToday {
+            return .orange
+        }
+        if entry.meals.isEmpty {
+            return isFuture ? .blue : .secondary.opacity(0.5)
+        }
+        return .green
+    }
+
+    private var backgroundStyle: some ShapeStyle {
+        if isSelected {
+            return AnyShapeStyle(.orange)
+        }
+        if isToday {
+            return AnyShapeStyle(Color.orange.opacity(0.12))
+        }
+        if isFuture {
+            return AnyShapeStyle(Color.blue.opacity(0.08))
+        }
+        return AnyShapeStyle(Color(.secondarySystemBackground))
+    }
+
+    private var borderColor: Color {
+        if isToday {
+            return .orange.opacity(0.4)
+        }
+        return Color(.separator)
     }
 }
