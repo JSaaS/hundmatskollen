@@ -20,6 +20,7 @@ struct AddMealView: View {
     @State private var date: Date
     @State private var type: MealType = .dinner
     @State private var notes = ""
+    @State private var waterText = ""
     @State private var draftItems: [DraftMealItem] = []
     @State private var isPresentingAddFood = false
 
@@ -41,6 +42,8 @@ struct AddMealView: View {
                             Text(mealType.rawValue).tag(mealType)
                         }
                     }
+                    TextField("Vätska (ml)", text: $waterText)
+                        .keyboardType(.decimalPad)
                     TextField("Anteckningar", text: $notes, axis: .vertical)
                 }
 
@@ -83,6 +86,12 @@ struct AddMealView: View {
                             Label("Skapa egen ingrediens", systemImage: "person.crop.circle.badge.plus")
                         }
                     }
+
+                    if parsedAmount(from: waterText) > 0 {
+                        Text("Du kan spara en registrering med bara vätska även utan ingredienser.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             .navigationTitle("Ny måltid")
@@ -97,7 +106,7 @@ struct AddMealView: View {
                     Button("Spara") {
                         saveMeal()
                     }
-                    .disabled(validDraftItems.isEmpty)
+                    .disabled(validDraftItems.isEmpty && parsedAmount(from: waterText) <= 0)
                 }
             }
         }
@@ -153,7 +162,13 @@ struct AddMealView: View {
     }
 
     private func saveMeal() {
-        let meal = Meal(dog: dog, date: date, type: type, notes: notes.trimmingCharacters(in: .whitespacesAndNewlines))
+        let meal = Meal(
+            dog: dog,
+            date: date,
+            type: type,
+            notes: notes.trimmingCharacters(in: .whitespacesAndNewlines),
+            waterMl: parsedAmount(from: waterText)
+        )
 
         for item in validDraftItems {
             guard let food = selectedFood(for: item) else { continue }
@@ -180,6 +195,10 @@ struct AddMealView: View {
     }
 
     private func parsedGrams(from text: String) -> Double {
+        parsedAmount(from: text)
+    }
+
+    private func parsedAmount(from text: String) -> Double {
         Double(text.replacingOccurrences(of: ",", with: ".")) ?? 0
     }
 

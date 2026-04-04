@@ -37,6 +37,8 @@ struct WeekView: View {
                             LabeledContent("Mål per dag", value: "\(Int(selectedDog.dailyCalories)) kcal")
                             LabeledContent("Mål protein", value: "\(Int(selectedDog.dailyProteinGrams)) g")
                             LabeledContent("Mål fett", value: "\(Int(selectedDog.dailyFatGrams)) g")
+                            LabeledContent("Mål fiber", value: "\(Int(selectedDog.dailyFiberGrams)) g")
+                            LabeledContent("Mål vätska", value: "\(Int(selectedDog.dailyWaterMl)) ml")
                         }
 
                         Section("Senaste 7 dagarna") {
@@ -81,6 +83,18 @@ struct WeekView: View {
                                             consumedText: "\(Int(entry.nutrition.protein)) / \(Int(selectedDog.dailyProteinGrams)) g",
                                             progress: entry.progress.protein,
                                             tint: .red
+                                        )
+                                        NutritionProgressRow(
+                                            title: "Fiber",
+                                            consumedText: "\(Int(entry.nutrition.fiber)) / \(Int(selectedDog.dailyFiberGrams)) g",
+                                            progress: entry.progress.fiber,
+                                            tint: .mint
+                                        )
+                                        NutritionProgressRow(
+                                            title: "Vätska",
+                                            consumedText: "\(Int(entry.nutrition.waterMl)) / \(Int(selectedDog.dailyWaterMl)) ml",
+                                            progress: entry.progress.water,
+                                            tint: .blue
                                         )
 
                                         HStack {

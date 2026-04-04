@@ -255,6 +255,38 @@ final class Dog {
         return remainingCalories / 4
     }
 
+    /// Rekommenderat dagligt fiberintag (gram)
+    var dailyFiberGrams: Double {
+        let baseFiber = weightKg * 1.0
+        let healthAdjustment: Double
+        switch healthStatus {
+        case .healthy, .senior:
+            healthAdjustment = 1.0
+        case .puppy:
+            healthAdjustment = 0.8
+        case .pregnant:
+            healthAdjustment = 1.1
+        case .sick:
+            healthAdjustment = 0.9
+        case .weightLoss:
+            healthAdjustment = 1.1
+        case .weightGain:
+            healthAdjustment = 0.95
+        }
+
+        let goalAdjustment: Double
+        switch feedingGoal {
+        case .maintain:
+            goalAdjustment = 1.0
+        case .loseWeight:
+            goalAdjustment = 1.1
+        case .gainWeight:
+            goalAdjustment = 0.95
+        }
+
+        return max(baseFiber * healthAdjustment * goalAdjustment, 1)
+    }
+
     /// Rekommenderat dagligt vattenintag (ml)
     var dailyWaterMl: Double {
         weightKg * healthStatus.waterFactor
