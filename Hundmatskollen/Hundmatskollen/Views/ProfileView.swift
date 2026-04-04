@@ -70,6 +70,13 @@ struct ProfileView: View {
 
     private func delete(_ dog: Dog) {
         modelContext.delete(dog)
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Could not delete dog: \(error)")
+        }
+
         dogPendingDeletion = nil
     }
 }

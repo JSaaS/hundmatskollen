@@ -34,6 +34,21 @@ struct RecipesView: View {
                             }
                         }
 
+                        Section("Databas") {
+                            NavigationLink {
+                                IngredientsView()
+                            } label: {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Ingrediensdatabas")
+                                        .font(.headline)
+                                    Text("Sök, bläddra och jämför ingredienser per kategori.")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .padding(.vertical, 4)
+                            }
+                        }
+
                         Section("Standardrecept") {
                             if filteredRecipes.isEmpty {
                                 ContentUnavailableView(
@@ -148,6 +163,7 @@ struct RecipeRowView: View {
 }
 
 struct RecipeDetailView: View {
+    @Environment(\.modelContext) private var modelContext
     let recipe: Recipe
     @State private var isPresentingAddMeal = false
 
@@ -199,6 +215,7 @@ struct RecipeDetailView: View {
                         }
                     }
                 }
+                .onDelete(perform: deleteItems)
             }
 
             if !recipe.notes.isEmpty {
@@ -222,6 +239,21 @@ struct RecipeDetailView: View {
         }
 
         return String(format: "%.1f", value)
+    }
+
+    private func deleteItems(at offsets: IndexSet) {
+        let itemsToDelete = offsets.map { recipe.items[$0] }
+
+        for item in itemsToDelete {
+            recipe.items.removeAll { $0.persistentModelID == item.persistentModelID }
+            modelContext.delete(item)
+        }
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Could not delete recipe item: \(error)")
+        }
     }
 }
 
@@ -394,6 +426,13 @@ struct AddRecipeView: View {
         }
 
         modelContext.insert(recipe)
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Could not save recipe: \(error)")
+        }
+
         dismiss()
     }
 

@@ -48,7 +48,9 @@ struct NutritionProgressRow: View {
 }
 
 struct FoodDetailView: View {
+    @Environment(\.dismiss) private var dismiss
     let food: Food
+    @State private var isPresentingEditFood = false
 
     var body: some View {
         List {
@@ -79,6 +81,19 @@ struct FoodDetailView: View {
         }
         .navigationTitle(food.name)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if food.isCustom {
+                Button("Redigera") {
+                    isPresentingEditFood = true
+                }
+            }
+        }
+        .sheet(isPresented: $isPresentingEditFood) {
+            EditFoodView(food: food) {
+                isPresentingEditFood = false
+                dismiss()
+            }
+        }
     }
 
     private func format(_ value: Double) -> String {

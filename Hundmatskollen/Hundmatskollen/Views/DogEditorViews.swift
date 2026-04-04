@@ -129,11 +129,19 @@ struct AddDogView: View {
             feedingGoal: feedingGoal
         )
         modelContext.insert(dog)
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Could not save dog: \(error)")
+        }
+
         dismiss()
     }
 }
 
 struct EditDogView: View {
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
     let dog: Dog
@@ -267,6 +275,12 @@ struct EditDogView: View {
         dog.healthStatus = healthStatus
         dog.activityLevel = activityLevel
         dog.feedingGoal = feedingGoal
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Could not save dog changes: \(error)")
+        }
 
         dismiss()
     }

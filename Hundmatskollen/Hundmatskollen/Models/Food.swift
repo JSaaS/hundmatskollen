@@ -120,6 +120,10 @@ extension Food {
                  isDangerousForDogs: true, dangerNote: "Giftigt för hundar även i små mängder."),
             Food(name: "Vindruvor",       category: .fruit,      caloriesPer100g: 67,  proteinPer100g: 1, fatPer100g: 0.4, carbsPer100g: 17, fiberPer100g: 1,
                  isDangerousForDogs: true, dangerNote: "Kan orsaka njursvikt hos hundar."),
+            Food(name: "Russin",          category: .fruit,      caloriesPer100g: 299, proteinPer100g: 3, fatPer100g: 0.5, carbsPer100g: 79, fiberPer100g: 4,
+                 isDangerousForDogs: true, dangerNote: "Kan orsaka allvarlig njurpåverkan hos hundar."),
+            Food(name: "Choklad",         category: .other,      caloriesPer100g: 546, proteinPer100g: 5, fatPer100g: 31, carbsPer100g: 61, fiberPer100g: 7,
+                 isDangerousForDogs: true, dangerNote: "Innehåller teobromin och är giftigt för hundar."),
 
             // Frukt
             Food(name: "Äpple (utan kärnhus)", category: .fruit, caloriesPer100g: 52, proteinPer100g: 0.3, fatPer100g: 0.2, carbsPer100g: 14, fiberPer100g: 2),
