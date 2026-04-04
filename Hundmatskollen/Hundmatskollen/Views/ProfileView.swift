@@ -10,20 +10,30 @@ struct ProfileView: View {
     var body: some View {
         NavigationStack {
             List {
-                ForEach(dogs) { dog in
-                    NavigationLink {
-                        EditDogView(dog: dog)
-                    } label: {
-                        VStack(alignment: .leading) {
-                            Text(dog.name)
-                                .font(.headline)
-                            Text("\(dog.breed) · \(String(format: "%.1f", dog.weightKg)) kg")
-                                .foregroundStyle(.secondary)
-                                .font(.subheadline)
+                Section("Hundar") {
+                    ForEach(dogs) { dog in
+                        NavigationLink {
+                            EditDogView(dog: dog)
+                        } label: {
+                            VStack(alignment: .leading) {
+                                Text(dog.name)
+                                    .font(.headline)
+                                Text("\(dog.breed) · \(String(format: "%.1f", dog.weightKg)) kg")
+                                    .foregroundStyle(.secondary)
+                                    .font(.subheadline)
+                            }
                         }
                     }
+                    .onDelete(perform: prepareDelete)
                 }
-                .onDelete(perform: prepareDelete)
+
+                Section("Information") {
+                    NavigationLink {
+                        FoodSafetyInfoView()
+                    } label: {
+                        Label("Farliga och olämpliga livsmedel", systemImage: "exclamationmark.shield")
+                    }
+                }
             }
             .navigationTitle("Profil")
             .toolbar {
