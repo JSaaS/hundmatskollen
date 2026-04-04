@@ -31,6 +31,10 @@ final class MealItem {
     var fat: Double      { food?.fat(forGrams: grams)      ?? 0 }
     var carbs: Double    { food?.carbs(forGrams: grams)    ?? 0 }
     var fiber: Double    { food?.fiber(forGrams: grams)    ?? 0 }
+    var fluidMl: Double {
+        guard food?.preferredUnit == .milliliters else { return 0 }
+        return grams
+    }
 }
 
 // MARK: - Meal
@@ -68,6 +72,8 @@ final class Meal {
     var totalCarbs: Double    { items.reduce(0) { $0 + $1.carbs    } }
     var totalFiber: Double    { items.reduce(0) { $0 + $1.fiber    } }
     var totalGrams: Double    { items.reduce(0) { $0 + $1.grams    } }
+    var totalFluidFromItemsMl: Double { items.reduce(0) { $0 + $1.fluidMl } }
+    var totalWaterMl: Double { waterMl + totalFluidFromItemsMl }
 
     var waterMl: Double {
         get { waterMlValue ?? 0 }
@@ -120,7 +126,7 @@ extension [Meal] {
             result.fat      += meal.totalFat
             result.carbs    += meal.totalCarbs
             result.fiber    += meal.totalFiber
-            result.waterMl  += meal.waterMl
+            result.waterMl  += meal.totalWaterMl
         }
     }
 }

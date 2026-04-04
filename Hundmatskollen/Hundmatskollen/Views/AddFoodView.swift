@@ -7,6 +7,7 @@ struct AddFoodView: View {
 
     @State private var name = ""
     @State private var category: FoodCategory = .other
+    @State private var preferredUnit: FoodMeasurementUnit = .grams
     @State private var caloriesText = ""
     @State private var proteinText = ""
     @State private var fatText = ""
@@ -25,9 +26,14 @@ struct AddFoodView: View {
                             Text(category.rawValue).tag(category)
                         }
                     }
+                    Picker("Föredragen enhet", selection: $preferredUnit) {
+                        ForEach(FoodMeasurementUnit.allCases, id: \.self) { unit in
+                            Text(unit.displayName + " (\(unit.rawValue))").tag(unit)
+                        }
+                    }
                 }
 
-                Section("Näringsvärden per 100 g") {
+                Section("Näringsvärden per \(preferredUnit.rawValue)") {
                     TextField("Kalorier (kcal)", text: $caloriesText)
                         .keyboardType(.decimalPad)
                     TextField("Protein (g)", text: $proteinText)
@@ -107,7 +113,8 @@ struct AddFoodView: View {
             fiberPer100g: fiber,
             isCustom: true,
             isDangerousForDogs: isDangerousForDogs,
-            dangerNote: trimmedDangerNote
+            dangerNote: trimmedDangerNote,
+            preferredUnit: preferredUnit
         )
         modelContext.insert(food)
 
@@ -140,6 +147,7 @@ struct EditFoodView: View {
 
     @State private var name: String
     @State private var category: FoodCategory
+    @State private var preferredUnit: FoodMeasurementUnit
     @State private var caloriesText: String
     @State private var proteinText: String
     @State private var fatText: String
@@ -154,6 +162,7 @@ struct EditFoodView: View {
         self.onDelete = onDelete
         _name = State(initialValue: food.name)
         _category = State(initialValue: food.category)
+        _preferredUnit = State(initialValue: food.preferredUnit)
         _caloriesText = State(initialValue: Self.format(food.caloriesPer100g))
         _proteinText = State(initialValue: Self.format(food.proteinPer100g))
         _fatText = State(initialValue: Self.format(food.fatPer100g))
@@ -173,9 +182,14 @@ struct EditFoodView: View {
                             Text(category.rawValue).tag(category)
                         }
                     }
+                    Picker("Föredragen enhet", selection: $preferredUnit) {
+                        ForEach(FoodMeasurementUnit.allCases, id: \.self) { unit in
+                            Text(unit.displayName + " (\(unit.rawValue))").tag(unit)
+                        }
+                    }
                 }
 
-                Section("Näringsvärden per 100 g") {
+                Section("Näringsvärden per \(preferredUnit.rawValue)") {
                     LabeledContent("Kalorier (kcal)") {
                         TextField("Kalorier (kcal)", text: $caloriesText)
                             .keyboardType(.decimalPad)
@@ -303,6 +317,7 @@ struct EditFoodView: View {
 
         food.name = trimmedName
         food.category = category
+        food.preferredUnit = preferredUnit
         food.caloriesPer100g = calories
         food.proteinPer100g = protein
         food.fatPer100g = fat

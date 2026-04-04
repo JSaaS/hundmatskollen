@@ -100,6 +100,10 @@ private struct IngredientRowView: View {
                         .foregroundStyle(.orange)
                 }
 
+                Text(food.quantityLabel)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
                 Spacer()
 
                 if food.isDangerousForDogs {
@@ -108,7 +112,7 @@ private struct IngredientRowView: View {
                 }
             }
 
-            Text("\(Int(food.caloriesPer100g)) kcal · P \(format(food.proteinPer100g)) g · F \(format(food.fatPer100g)) g · K \(format(food.carbsPer100g)) g / 100 g")
+            Text("\(Int(food.caloriesPer100g)) kcal · P \(format(food.proteinPer100g)) g · F \(format(food.fatPer100g)) g · K \(format(food.carbsPer100g)) g / \(food.nutritionBasisLabel)")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 

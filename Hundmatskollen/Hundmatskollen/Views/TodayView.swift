@@ -113,7 +113,7 @@ struct TodayView: View {
                                                 Text(recipe.name)
                                                     .font(.headline)
                                                     .foregroundStyle(.primary)
-                                                Text("\(recipe.items.count) ingredienser · \(Int(recipe.totalGrams)) g · \(Int(recipe.totalCalories)) kcal")
+                                                Text("\(recipe.items.count) ingredienser · \(Int(recipe.totalCalories)) kcal")
                                                     .font(.subheadline)
                                                     .foregroundStyle(.secondary)
                                             }
@@ -151,7 +151,7 @@ struct TodayView: View {
                                                 HStack {
                                                     Text(food.name)
                                                     Spacer()
-                                                    Text("\(Int(item.grams)) g")
+                                                    Text("\(Int(item.grams)) \(food.quantityLabel)")
                                                         .foregroundStyle(.secondary)
                                                 }
                                                 .font(.subheadline)
@@ -162,8 +162,8 @@ struct TodayView: View {
                                             .font(.subheadline)
                                             .foregroundStyle(.secondary)
 
-                                        if meal.waterMl > 0 {
-                                            Text("\(Int(meal.waterMl)) ml vätska")
+                                        if meal.totalWaterMl > 0 {
+                                            Text("\(Int(meal.totalWaterMl)) ml vätska")
                                                 .font(.subheadline)
                                                 .foregroundStyle(.secondary)
                                         }

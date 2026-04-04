@@ -62,7 +62,7 @@ struct AddMealView: View {
                                     }
                                 }
 
-                                TextField("Mängd (gram)", text: $item.gramsText)
+                                TextField(quantityFieldLabel(for: item), text: $item.gramsText)
                                     .keyboardType(.decimalPad)
 
                                 if let food = selectedFood(for: item), food.isDangerousForDogs {
@@ -109,7 +109,7 @@ struct AddMealView: View {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(recipe.name)
                                             .foregroundStyle(.primary)
-                                        Text("\(recipe.items.count) ingredienser · \(Int(recipe.totalGrams)) g · \(Int(recipe.totalCalories)) kcal")
+                                        Text("\(recipe.items.count) ingredienser · \(Int(recipe.totalCalories)) kcal")
                                             .font(.footnote)
                                             .foregroundStyle(.secondary)
                                     }
@@ -238,6 +238,10 @@ struct AddMealView: View {
     private func selectedFood(for item: DraftMealItem) -> Food? {
         guard foods.indices.contains(item.selectedFoodIndex) else { return nil }
         return foods[item.selectedFoodIndex]
+    }
+
+    private func quantityFieldLabel(for item: DraftMealItem) -> String {
+        selectedFood(for: item)?.quantityFieldLabel ?? "Mängd"
     }
 
     private func parsedGrams(from text: String) -> Double {

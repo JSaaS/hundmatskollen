@@ -30,6 +30,20 @@ enum FoodCategory: String, Codable, CaseIterable {
     }
 }
 
+enum FoodMeasurementUnit: String, Codable, CaseIterable {
+    case grams = "g"
+    case milliliters = "ml"
+
+    var displayName: String {
+        switch self {
+        case .grams:
+            return "Gram"
+        case .milliliters:
+            return "Milliliter"
+        }
+    }
+}
+
 // MARK: - Food Model
 
 /// Ett livsmedel med näringsvärden per 100g.
@@ -52,6 +66,7 @@ final class Food {
     var isCustom: Bool               // Skapad av användaren
     var isDangerousForDogs: Bool     // T.ex. lök, druvor, choklad
     var dangerNote: String           // Förklaring om livsmedlet är farligt
+    var preferredUnitRawValue: String?
 
     init(
         name: String,
@@ -63,7 +78,8 @@ final class Food {
         fiberPer100g: Double,
         isCustom: Bool = false,
         isDangerousForDogs: Bool = false,
-        dangerNote: String = ""
+        dangerNote: String = "",
+        preferredUnit: FoodMeasurementUnit = .grams
     ) {
         self.name = name
         self.category = category
@@ -75,6 +91,7 @@ final class Food {
         self.isCustom = isCustom
         self.isDangerousForDogs = isDangerousForDogs
         self.dangerNote = dangerNote
+        self.preferredUnitRawValue = preferredUnit.rawValue
     }
 
     /// Beräknar näringsvärden för en given mängd (gram)
@@ -83,6 +100,23 @@ final class Food {
     func fat(forGrams grams: Double) -> Double      { fatPer100g      * grams / 100 }
     func carbs(forGrams grams: Double) -> Double    { carbsPer100g    * grams / 100 }
     func fiber(forGrams grams: Double) -> Double    { fiberPer100g    * grams / 100 }
+
+    var preferredUnit: FoodMeasurementUnit {
+        get { FoodMeasurementUnit(rawValue: preferredUnitRawValue ?? "") ?? .grams }
+        set { preferredUnitRawValue = newValue.rawValue }
+    }
+
+    var quantityLabel: String {
+        preferredUnit.rawValue
+    }
+
+    var quantityFieldLabel: String {
+        "Mängd (\(quantityLabel))"
+    }
+
+    var nutritionBasisLabel: String {
+        "100 \(quantityLabel)"
+    }
 }
 
 // MARK: - Startdatabas med vanliga ingredienser

@@ -147,7 +147,7 @@ struct RecipeRowView: View {
                 }
             }
 
-            Text("\(recipe.items.count) ingredienser · \(Int(recipe.totalGrams)) g · \(Int(recipe.totalCalories)) kcal")
+            Text("\(recipe.items.count) ingredienser · \(Int(recipe.totalCalories)) kcal")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
@@ -170,7 +170,7 @@ struct RecipeDetailView: View {
     var body: some View {
         List {
             Section("Översikt") {
-                LabeledContent("Totalt", value: "\(Int(recipe.totalGrams)) g")
+                LabeledContent("Ingredienser", value: "\(recipe.items.count)")
                 LabeledContent("Kalorier", value: "\(Int(recipe.totalCalories)) kcal")
                 LabeledContent("Protein", value: "\(format(recipe.totalProtein)) g")
                 LabeledContent("Fett", value: "\(format(recipe.totalFat)) g")
@@ -197,7 +197,7 @@ struct RecipeDetailView: View {
                                 HStack {
                                     Text("\(food.category.icon) \(food.name)")
                                     Spacer()
-                                    Text("\(Int(item.grams)) g")
+                                    Text("\(Int(item.grams)) \(food.quantityLabel)")
                                         .foregroundStyle(.secondary)
                                 }
 
@@ -298,7 +298,7 @@ struct AddRecipeView: View {
                                     }
                                 }
 
-                                TextField("Mängd (gram)", text: $item.gramsText)
+                                TextField(quantityFieldLabel(for: item), text: $item.gramsText)
                                     .keyboardType(.decimalPad)
 
                                 if let food = selectedFood(for: item), food.isDangerousForDogs {
@@ -330,7 +330,7 @@ struct AddRecipeView: View {
                         Text("Lägg till ingredienser för att se receptets näringsvärden.")
                             .foregroundStyle(.secondary)
                     } else {
-                        LabeledContent("Totalt", value: "\(Int(totalGrams)) g")
+                        LabeledContent("Ingredienser", value: "\(validDraftItems.count)")
                         LabeledContent("Kalorier", value: "\(Int(totalCalories)) kcal")
                         LabeledContent("Protein", value: "\(format(totalProtein)) g")
                         LabeledContent("Fett", value: "\(format(totalFat)) g")
@@ -398,10 +398,6 @@ struct AddRecipeView: View {
         }
     }
 
-    private var totalGrams: Double {
-        validDraftItems.reduce(0) { $0 + parsedGrams(from: $1.gramsText) }
-    }
-
     private func addDraftItem() {
         draftItems.append(DraftRecipeItem())
     }
@@ -439,6 +435,10 @@ struct AddRecipeView: View {
     private func selectedFood(for item: DraftRecipeItem) -> Food? {
         guard foods.indices.contains(item.selectedFoodIndex) else { return nil }
         return foods[item.selectedFoodIndex]
+    }
+
+    private func quantityFieldLabel(for item: DraftRecipeItem) -> String {
+        selectedFood(for: item)?.quantityFieldLabel ?? "Mängd"
     }
 
     private func parsedGrams(from text: String) -> Double {
