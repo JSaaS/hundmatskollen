@@ -164,6 +164,13 @@ struct AddMealView: View {
         }
 
         modelContext.insert(meal)
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Could not save meal: \(error)")
+        }
+
         dismiss()
     }
 

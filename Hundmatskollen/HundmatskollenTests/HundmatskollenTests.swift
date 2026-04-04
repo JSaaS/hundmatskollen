@@ -57,10 +57,14 @@ struct HundmatskollenTests {
     @Test("Farliga livsmedel finns markerade i seed-data")
     func dangerousFoodsAreFlaggedInSeedData() {
         let onion = Food.seedData().first { $0.name == "Lök" }
+        let chocolate = Food.seedData().first { $0.name == "Choklad" }
+        let raisins = Food.seedData().first { $0.name == "Russin" }
 
         #expect(onion != nil)
         #expect(onion?.isDangerousForDogs == true)
         #expect(!(onion?.dangerNote.isEmpty ?? true))
+        #expect(chocolate?.isDangerousForDogs == true)
+        #expect(raisins?.isDangerousForDogs == true)
     }
 
     @Test("Seed-data innehåller minst 20 ingredienser")
@@ -108,6 +112,65 @@ struct HundmatskollenTests {
         #expect(abs(meal.totalProtein - 18) < 0.01)
         #expect(abs(recipe.totalCalories - 360) < 0.01)
         #expect(abs(recipe.totalFiber - 6) < 0.01)
+    }
+
+    @Test("Seed-data placerar ingredienser i rätt kategorier")
+    func seedDataUsesExpectedCategories() {
+        let salmon = Food.seedData().first { $0.name == "Lax" }
+        let sweetPotato = Food.seedData().first { $0.name == "Sötpotatis" }
+        let oats = Food.seedData().first { $0.name == "Havregryn" }
+
+        #expect(salmon?.category == .fish)
+        #expect(sweetPotato?.category == .vegetables)
+        #expect(oats?.category == .grains)
+    }
+
+    @Test("Custom-ingrediens är inte farlig som standard")
+    func customFoodIsNotDangerousByDefault() {
+        let customFood = Food(
+            name: "Eget tillskott",
+            category: .supplements,
+            caloriesPer100g: 100,
+            proteinPer100g: 10,
+            fatPer100g: 2,
+            carbsPer100g: 5,
+            fiberPer100g: 1,
+            isCustom: true
+        )
+
+        #expect(customFood.isCustom == true)
+        #expect(customFood.isDangerousForDogs == false)
+        #expect(customFood.dangerNote.isEmpty)
+    }
+
+    @Test("Ändringar på egen ingrediens slår igenom i recept och måltider")
+    func editingCustomFoodUpdatesRelatedTotals() {
+        let customFood = Food(
+            name: "Egen mix",
+            category: .other,
+            caloriesPer100g: 100,
+            proteinPer100g: 10,
+            fatPer100g: 5,
+            carbsPer100g: 10,
+            fiberPer100g: 2,
+            isCustom: true
+        )
+
+        let meal = Meal(type: .dinner)
+        meal.items.append(MealItem(food: customFood, grams: 100))
+
+        let recipe = Recipe(name: "Mixrecept")
+        recipe.items.append(RecipeItem(food: customFood, grams: 200))
+
+        customFood.caloriesPer100g = 150
+        customFood.proteinPer100g = 20
+        customFood.isDangerousForDogs = true
+        customFood.dangerNote = "Ny varning"
+
+        #expect(abs(meal.totalCalories - 150) < 0.01)
+        #expect(abs(meal.totalProtein - 20) < 0.01)
+        #expect(abs(recipe.totalCalories - 300) < 0.01)
+        #expect(recipe.dangerousItemCount == 1)
     }
 
     @Test("Meal summerar totalsiffror korrekt")

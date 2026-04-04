@@ -29,6 +29,12 @@ struct ContentView: View {
         Food.seedData().forEach { food in
             modelContext.insert(food)
         }
+
+        do {
+            try modelContext.save()
+        } catch {
+            assertionFailure("Could not save seeded foods: \(error)")
+        }
     }
 }
 
