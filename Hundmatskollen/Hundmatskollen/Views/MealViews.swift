@@ -21,6 +21,7 @@ struct AddMealView: View {
     @State private var type: MealType = .dinner
     @State private var notes = ""
     @State private var draftItems: [DraftMealItem] = []
+    @State private var isPresentingAddFood = false
 
     init(dog: Dog, initialDate: Date = Date(), initialRecipe: Recipe? = nil) {
         self.dog = dog
@@ -53,7 +54,7 @@ struct AddMealView: View {
                                 Picker("Livsmedel", selection: $item.selectedFoodIndex) {
                                     ForEach(Array(foods.indices), id: \.self) { index in
                                         let food = foods[index]
-                                        Text("\(food.category.icon) \(food.name)").tag(index)
+                                        Text(food.pickerTitle).tag(index)
                                     }
                                 }
 
@@ -75,6 +76,12 @@ struct AddMealView: View {
                         } label: {
                             Label("Lägg till ingrediens", systemImage: "plus.circle")
                         }
+
+                        Button {
+                            isPresentingAddFood = true
+                        } label: {
+                            Label("Skapa egen ingrediens", systemImage: "person.crop.circle.badge.plus")
+                        }
                     }
                 }
             }
@@ -93,6 +100,9 @@ struct AddMealView: View {
                     .disabled(validDraftItems.isEmpty)
                 }
             }
+        }
+        .sheet(isPresented: $isPresentingAddFood) {
+            AddFoodView()
         }
         .onAppear {
             date = initialDate

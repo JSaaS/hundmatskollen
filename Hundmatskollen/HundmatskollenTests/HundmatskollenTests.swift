@@ -68,6 +68,48 @@ struct HundmatskollenTests {
         #expect(Food.seedData().count >= 20)
     }
 
+    @Test("Egen ingrediens markeras som custom")
+    func customFoodIsMarkedAsCustom() {
+        let customFood = Food(
+            name: "Grönläppad mussla",
+            category: .supplements,
+            caloriesPer100g: 320,
+            proteinPer100g: 58,
+            fatPer100g: 7,
+            carbsPer100g: 12,
+            fiberPer100g: 0,
+            isCustom: true
+        )
+
+        #expect(customFood.isCustom == true)
+        #expect(customFood.isDangerousForDogs == false)
+    }
+
+    @Test("Egen ingrediens fungerar i recept- och måltidssummering")
+    func customFoodParticipatesInMealAndRecipeTotals() {
+        let customFood = Food(
+            name: "Hemgjord mix",
+            category: .other,
+            caloriesPer100g: 180,
+            proteinPer100g: 12,
+            fatPer100g: 8,
+            carbsPer100g: 14,
+            fiberPer100g: 3,
+            isCustom: true
+        )
+
+        let meal = Meal(type: .dinner)
+        meal.items.append(MealItem(food: customFood, grams: 150))
+
+        let recipe = Recipe(name: "Kvällsmix")
+        recipe.items.append(RecipeItem(food: customFood, grams: 200))
+
+        #expect(abs(meal.totalCalories - 270) < 0.01)
+        #expect(abs(meal.totalProtein - 18) < 0.01)
+        #expect(abs(recipe.totalCalories - 360) < 0.01)
+        #expect(abs(recipe.totalFiber - 6) < 0.01)
+    }
+
     @Test("Meal summerar totalsiffror korrekt")
     func mealTotalsAreSummedCorrectly() {
         let salmon = Food(
