@@ -4,6 +4,7 @@ import SwiftData
 struct ProfileView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var dogs: [Dog]
+    @AppStorage(SettingsKeys.weightUnit) private var weightUnitRawValue = WeightDisplayUnit.kilograms.rawValue
 
     @State private var dogPendingDeletion: Dog?
 
@@ -18,7 +19,7 @@ struct ProfileView: View {
                             VStack(alignment: .leading) {
                                 Text(dog.name)
                                     .font(.headline)
-                                Text("\(dog.breed) · \(String(format: "%.1f", dog.weightKg)) kg")
+                                Text("\(dog.breed) · \(DisplayFormatter.weightText(fromKilograms: dog.weightKg, unit: weightDisplayUnit))")
                                     .foregroundStyle(.secondary)
                                     .font(.subheadline)
                             }
@@ -28,6 +29,12 @@ struct ProfileView: View {
                 }
 
                 Section("Information") {
+                    NavigationLink {
+                        SettingsView()
+                    } label: {
+                        Label("Inställningar", systemImage: "gearshape")
+                    }
+
                     NavigationLink {
                         FoodSafetyInfoView()
                     } label: {
@@ -88,5 +95,9 @@ struct ProfileView: View {
         }
 
         dogPendingDeletion = nil
+    }
+
+    private var weightDisplayUnit: WeightDisplayUnit {
+        WeightDisplayUnit(rawValue: weightUnitRawValue) ?? .kilograms
     }
 }

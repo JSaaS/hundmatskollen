@@ -13,6 +13,8 @@ struct AddMealView: View {
 
     @Query(sort: \Food.name) private var foods: [Food]
     @Query(sort: \Recipe.createdAt, order: .reverse) private var recipes: [Recipe]
+    @AppStorage(SettingsKeys.weightUnit) private var weightUnitRawValue = WeightDisplayUnit.kilograms.rawValue
+    @AppStorage(SettingsKeys.volumeUnit) private var volumeUnitRawValue = VolumeDisplayUnit.milliliters.rawValue
 
     let dog: Dog
     private let initialDate: Date
@@ -45,7 +47,7 @@ struct AddMealView: View {
                             Text(mealType.displayTitle).tag(mealType)
                         }
                     }
-                    TextField("Vätska (ml)", text: $waterText)
+                    TextField("Vätska (\(volumeDisplayUnit.rawValue))", text: $waterText)
                         .keyboardType(.decimalPad)
                     TextField("Anteckningar", text: $notes, axis: .vertical)
                 }
@@ -159,7 +161,8 @@ struct AddMealView: View {
 
     private var validDraftItems: [DraftMealItem] {
         draftItems.filter { item in
-            selectedFood(for: item) != nil && parsedGrams(from: item.gramsText) > 0
+            guard let food = selectedFood(for: item) else { return false }
+            return parsedMetricAmount(from: item.gramsText, for: food) > 0
         }
     }
 
@@ -185,7 +188,7 @@ struct AddMealView: View {
 
             var draftItem = DraftMealItem()
             draftItem.selectedFoodIndex = index
-            draftItem.gramsText = formatGrams(item.grams)
+            draftItem.gramsText = formatAmount(item.grams, for: food)
             return draftItem
         }
 
@@ -219,13 +222,13 @@ struct AddMealView: View {
             date: date,
             type: type,
             notes: notes.trimmingCharacters(in: .whitespacesAndNewlines),
-            waterMl: parsedAmount(from: waterText)
+            waterMl: parsedWaterAmount(from: waterText)
         )
 
         for item in validDraftItems {
             guard let food = selectedFood(for: item) else { continue }
 
-            let mealItem = MealItem(food: food, grams: parsedGrams(from: item.gramsText))
+            let mealItem = MealItem(food: food, grams: parsedMetricAmount(from: item.gramsText, for: food))
             modelContext.insert(mealItem)
             meal.items.append(mealItem)
         }
@@ -247,23 +250,46 @@ struct AddMealView: View {
     }
 
     private func quantityFieldLabel(for item: DraftMealItem) -> String {
-        selectedFood(for: item)?.quantityFieldLabel ?? "Mängd"
+        guard let food = selectedFood(for: item) else { return "Mängd" }
+        return "Mängd (\(displayAmountUnitLabel(for: food)))"
     }
 
-    private func parsedGrams(from text: String) -> Double {
-        parsedAmount(from: text)
+    private func parsedMetricAmount(from text: String, for food: Food) -> Double {
+        let value = parsedAmount(from: text)
+        return DisplayFormatter.metricFoodAmount(
+            fromDisplayValue: value,
+            foodUnit: food.preferredUnit,
+            weightUnit: weightDisplayUnit,
+            volumeUnit: volumeDisplayUnit
+        )
+    }
+
+    private func parsedWaterAmount(from text: String) -> Double {
+        let value = parsedAmount(from: text)
+        return volumeDisplayUnit == .milliliters ? value : value * 29.5735
     }
 
     private func parsedAmount(from text: String) -> Double {
         Double(text.replacingOccurrences(of: ",", with: ".")) ?? 0
     }
 
-    private func formatGrams(_ value: Double) -> String {
-        if value.rounded() == value {
-            return String(Int(value))
-        }
+    private func formatAmount(_ value: Double, for food: Food) -> String {
+        DisplayFormatter
+            .displayFoodAmount(
+                fromMetricAmount: value,
+                foodUnit: food.preferredUnit,
+                weightUnit: weightDisplayUnit,
+                volumeUnit: volumeDisplayUnit
+            )
+            .replacingOccurrences(of: ".", with: ",")
+    }
 
-        return String(format: "%.1f", value).replacingOccurrences(of: ".", with: ",")
+    private func displayAmountUnitLabel(for food: Food) -> String {
+        DisplayFormatter.foodAmountUnitLabel(
+            for: food.preferredUnit,
+            weightUnit: weightDisplayUnit,
+            volumeUnit: volumeDisplayUnit
+        )
     }
 
     private func applySuggestedTime(for mealType: MealType, on baseDate: Date) {
@@ -283,5 +309,13 @@ struct AddMealView: View {
                 }
             }
         )
+    }
+
+    private var weightDisplayUnit: WeightDisplayUnit {
+        WeightDisplayUnit(rawValue: weightUnitRawValue) ?? .kilograms
+    }
+
+    private var volumeDisplayUnit: VolumeDisplayUnit {
+        VolumeDisplayUnit(rawValue: volumeUnitRawValue) ?? .milliliters
     }
 }
