@@ -62,6 +62,18 @@ final class Food {
     var carbsPer100g: Double         // gram
     var fiberPer100g: Double         // gram
 
+    // Mikronäringsvärden per 100g
+    var calcium: Double?             // mg
+    var phosphorus: Double?          // mg
+    var magnesium: Double?           // mg
+    var iron: Double?                // mg
+    var zinc: Double?                // mg
+    var sodium: Double?              // mg
+    var vitaminA: Double?            // µg RE
+    var vitaminD: Double?            // µg
+    var vitaminE: Double?            // mg
+    var vitaminB12: Double?          // µg
+
     // Flaggor
     var isCustom: Bool               // Skapad av användaren
     var isDangerousForDogs: Bool     // T.ex. lök, druvor, choklad
@@ -76,6 +88,16 @@ final class Food {
         fatPer100g: Double,
         carbsPer100g: Double,
         fiberPer100g: Double,
+        calcium: Double? = nil,
+        phosphorus: Double? = nil,
+        magnesium: Double? = nil,
+        iron: Double? = nil,
+        zinc: Double? = nil,
+        sodium: Double? = nil,
+        vitaminA: Double? = nil,
+        vitaminD: Double? = nil,
+        vitaminE: Double? = nil,
+        vitaminB12: Double? = nil,
         isCustom: Bool = false,
         isDangerousForDogs: Bool = false,
         dangerNote: String = "",
@@ -88,6 +110,16 @@ final class Food {
         self.fatPer100g = fatPer100g
         self.carbsPer100g = carbsPer100g
         self.fiberPer100g = fiberPer100g
+        self.calcium = calcium
+        self.phosphorus = phosphorus
+        self.magnesium = magnesium
+        self.iron = iron
+        self.zinc = zinc
+        self.sodium = sodium
+        self.vitaminA = vitaminA
+        self.vitaminD = vitaminD
+        self.vitaminE = vitaminE
+        self.vitaminB12 = vitaminB12
         self.isCustom = isCustom
         self.isDangerousForDogs = isDangerousForDogs
         self.dangerNote = dangerNote
