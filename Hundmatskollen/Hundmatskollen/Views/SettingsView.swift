@@ -31,6 +31,9 @@ struct SettingsView: View {
                 Text("Hundmatskollen hjälper dig att planera, logga och följa hundens mat över tid.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                Text("Datakälla: Livsmedelsverket livsmedelsdatabas (CC BY 4.0) används för seedad näringsdata.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
         .navigationTitle("Inställningar")
