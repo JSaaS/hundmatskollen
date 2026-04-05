@@ -19,6 +19,7 @@ struct AddMealView: View {
     let dog: Dog
     private let initialDate: Date
     private let initialRecipe: Recipe?
+    private let initialFood: Food?
 
     @State private var date: Date
     @State private var type: MealType = .dinner
@@ -29,10 +30,11 @@ struct AddMealView: View {
     @State private var hasCustomizedTime = false
     @State private var isApplyingSuggestedTime = false
 
-    init(dog: Dog, initialDate: Date = Date(), initialRecipe: Recipe? = nil) {
+    init(dog: Dog, initialDate: Date = Date(), initialRecipe: Recipe? = nil, initialFood: Food? = nil) {
         self.dog = dog
         self.initialDate = initialDate
         self.initialRecipe = initialRecipe
+        self.initialFood = initialFood
         _date = State(initialValue: initialDate)
         _notes = State(initialValue: initialRecipe?.name ?? "")
     }
@@ -207,6 +209,14 @@ struct AddMealView: View {
             if !draftItems.isEmpty {
                 return
             }
+        }
+
+        if let initialFood,
+           let index = foods.firstIndex(where: { $0.persistentModelID == initialFood.persistentModelID }) {
+            var draftItem = DraftMealItem()
+            draftItem.selectedFoodIndex = index
+            draftItems = [draftItem]
+            return
         }
 
         addDraftItem()

@@ -270,11 +270,17 @@ struct AddRecipeView: View {
     @Query(sort: \Food.name) private var foods: [Food]
 
     let dog: Dog
+    private let initialFood: Food?
 
     @State private var name = ""
     @State private var notes = ""
     @State private var draftItems: [DraftRecipeItem] = []
     @State private var isPresentingAddFood = false
+
+    init(dog: Dog, initialFood: Food? = nil) {
+        self.dog = dog
+        self.initialFood = initialFood
+    }
 
     var body: some View {
         NavigationStack {
@@ -359,7 +365,7 @@ struct AddRecipeView: View {
         }
         .onAppear {
             if draftItems.isEmpty && !foods.isEmpty {
-                addDraftItem()
+                populateDraftItems()
             }
         }
     }
@@ -400,6 +406,18 @@ struct AddRecipeView: View {
 
     private func addDraftItem() {
         draftItems.append(DraftRecipeItem())
+    }
+
+    private func populateDraftItems() {
+        if let initialFood,
+           let index = foods.firstIndex(where: { $0.persistentModelID == initialFood.persistentModelID }) {
+            var draftItem = DraftRecipeItem()
+            draftItem.selectedFoodIndex = index
+            draftItems = [draftItem]
+            return
+        }
+
+        addDraftItem()
     }
 
     private func removeItems(at offsets: IndexSet) {

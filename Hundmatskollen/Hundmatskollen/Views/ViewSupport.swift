@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 extension Food {
     var pickerTitle: String {
@@ -49,8 +50,11 @@ struct NutritionProgressRow: View {
 
 struct FoodDetailView: View {
     @Environment(\.dismiss) private var dismiss
+    @Query(sort: \Dog.createdAt) private var dogs: [Dog]
     let food: Food
     @State private var isPresentingEditFood = false
+    @State private var mealDog: Dog?
+    @State private var recipeDog: Dog?
 
     var body: some View {
         List {
@@ -79,6 +83,45 @@ struct FoodDetailView: View {
                         .foregroundStyle(.green)
                 }
             }
+
+            Section("Använd ingrediens") {
+                if dogs.isEmpty {
+                    Text("Skapa en hundprofil innan du lägger till ingrediensen i måltid eller recept.")
+                        .foregroundStyle(.secondary)
+                } else if dogs.count == 1, let dog = dogs.first {
+                    Button {
+                        mealDog = dog
+                    } label: {
+                        Label("Lägg till i måltid", systemImage: "plus.circle")
+                    }
+
+                    Button {
+                        recipeDog = dog
+                    } label: {
+                        Label("Lägg till i recept", systemImage: "book.closed")
+                    }
+                } else {
+                    Menu {
+                        ForEach(dogs) { dog in
+                            Button(dog.name) {
+                                mealDog = dog
+                            }
+                        }
+                    } label: {
+                        Label("Lägg till i måltid", systemImage: "plus.circle")
+                    }
+
+                    Menu {
+                        ForEach(dogs) { dog in
+                            Button(dog.name) {
+                                recipeDog = dog
+                            }
+                        }
+                    } label: {
+                        Label("Lägg till i recept", systemImage: "book.closed")
+                    }
+                }
+            }
         }
         .navigationTitle(food.name)
         .navigationBarTitleDisplayMode(.inline)
@@ -94,6 +137,12 @@ struct FoodDetailView: View {
                 isPresentingEditFood = false
                 dismiss()
             }
+        }
+        .sheet(item: $mealDog) { dog in
+            AddMealView(dog: dog, initialFood: food)
+        }
+        .sheet(item: $recipeDog) { dog in
+            AddRecipeView(dog: dog, initialFood: food)
         }
     }
 
