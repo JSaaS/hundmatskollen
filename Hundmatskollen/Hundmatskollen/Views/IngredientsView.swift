@@ -6,14 +6,41 @@ struct IngredientsView: View {
 
     @State private var searchText = ""
     @State private var isPresentingAddFood = false
+    @State private var selectedCategory: FoodCategory?
 
     var body: some View {
         List {
+            Section {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        CategoryFilterChip(
+                            title: "Alla",
+                            systemImage: "square.grid.2x2",
+                            isSelected: selectedCategory == nil
+                        ) {
+                            selectedCategory = nil
+                        }
+
+                        ForEach(FoodCategory.allCases, id: \.self) { category in
+                            CategoryFilterChip(
+                                title: category.rawValue,
+                                iconText: category.icon,
+                                isSelected: selectedCategory == category
+                            ) {
+                                selectedCategory = category
+                            }
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 4, trailing: 16))
+            }
+
             if filteredFoods.isEmpty {
                 ContentUnavailableView(
                     searchText.isEmpty ? "Inga ingredienser" : "Inga träffar",
                     systemImage: "carrot",
-                    description: Text(searchText.isEmpty ? "Lägg till en ingrediens för att börja bygga din databas." : "Prova ett annat sökord.")
+                    description: Text(emptyStateDescription)
                 )
             } else {
                 ForEach(sectionedFoods) { section in
@@ -50,10 +77,10 @@ struct IngredientsView: View {
     }
 
     private var filteredFoods: [Food] {
-        guard !searchText.isEmpty else { return foods }
-
-        return foods.filter { food in
-            food.name.localizedCaseInsensitiveContains(searchText)
+        foods.filter { food in
+            let matchesCategory = selectedCategory.map { food.category == $0 } ?? true
+            let matchesSearch = searchText.isEmpty || food.name.localizedCaseInsensitiveContains(searchText)
+            return matchesCategory && matchesSearch
         }
     }
 
@@ -74,6 +101,22 @@ struct IngredientsView: View {
             guard !foodsInCategory.isEmpty else { return nil }
             return IngredientSection(category: category, foods: foodsInCategory)
         }
+    }
+
+    private var emptyStateDescription: String {
+        if searchText.isEmpty, let selectedCategory {
+            return "Det finns inga ingredienser i kategorin \(selectedCategory.rawValue) ännu."
+        }
+
+        if !searchText.isEmpty, let selectedCategory {
+            return "Prova ett annat sökord eller byt kategori från \(selectedCategory.rawValue)."
+        }
+
+        if searchText.isEmpty {
+            return "Lägg till en ingrediens för att börja bygga din databas."
+        }
+
+        return "Prova ett annat sökord."
     }
 }
 
@@ -132,5 +175,34 @@ private struct IngredientRowView: View {
         }
 
         return String(format: "%.1f", value)
+    }
+}
+
+private struct CategoryFilterChip: View {
+    let title: String
+    var iconText: String?
+    var systemImage: String?
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                if let iconText {
+                    Text(iconText)
+                }
+                if let systemImage {
+                    Image(systemName: systemImage)
+                }
+                Text(title)
+                    .font(.subheadline.weight(.medium))
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(isSelected ? Color.orange : Color(.secondarySystemBackground))
+            .foregroundStyle(isSelected ? Color.white : Color.primary)
+            .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
     }
 }
