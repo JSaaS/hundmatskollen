@@ -44,5 +44,11 @@ final class Recipe {
     var totalCarbs: Double { items.reduce(0) { $0 + $1.carbs } }
     var totalFiber: Double { items.reduce(0) { $0 + $1.fiber } }
     var totalGrams: Double { items.reduce(0) { $0 + $1.grams } }
+    var totalWaterMl: Double {
+        items.reduce(0) { partialResult, item in
+            guard item.food?.preferredUnit == .milliliters else { return partialResult }
+            return partialResult + item.grams
+        }
+    }
     var dangerousItemCount: Int { items.filter { $0.food?.isDangerousForDogs == true }.count }
 }

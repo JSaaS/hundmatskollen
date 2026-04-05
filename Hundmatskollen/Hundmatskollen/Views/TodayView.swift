@@ -54,15 +54,6 @@ struct TodayView: View {
                             }
                         }
 
-                        Section("Dagens mål") {
-                            LabeledContent("Kalorier", value: "\(Int(selectedDog.dailyCalories)) kcal")
-                            LabeledContent("Protein", value: "\(Int(selectedDog.dailyProteinGrams)) g")
-                            LabeledContent("Fett", value: "\(Int(selectedDog.dailyFatGrams)) g")
-                            LabeledContent("Kolhydrater", value: "\(Int(selectedDog.dailyCarbGrams)) g")
-                            LabeledContent("Fiber", value: "\(Int(selectedDog.dailyFiberGrams)) g")
-                            LabeledContent("Vätska", value: "\(Int(selectedDog.dailyWaterMl)) ml")
-                        }
-
                         Section("Summering idag") {
                             NutritionProgressRow(
                                 title: "Kalorier",
