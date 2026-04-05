@@ -135,6 +135,26 @@ struct HundmatskollenTests {
         #expect(food.preferredUnit == .grams)
     }
 
+    @Test("Dubblettnamn för ingrediens hittas skiftlägesokänsligt")
+    func duplicateFoodNameDetectionIsCaseInsensitive() {
+        let existingFoods = [
+            Food(
+                name: "Kycklingfilé",
+                category: .meat,
+                caloriesPer100g: 110,
+                proteinPer100g: 23,
+                fatPer100g: 2,
+                carbsPer100g: 0,
+                fiberPer100g: 0
+            )
+        ]
+
+        #expect(Food.hasDuplicateName("kycklingfilé", in: existingFoods))
+        #expect(Food.hasDuplicateName("  Kycklingfilé  ", in: existingFoods))
+        #expect(!Food.hasDuplicateName("Torsk", in: existingFoods))
+        #expect(!Food.hasDuplicateName("   ", in: existingFoods))
+    }
+
     @Test("Egen ingrediens fungerar i recept- och måltidssummering")
     func customFoodParticipatesInMealAndRecipeTotals() {
         let customFood = Food(

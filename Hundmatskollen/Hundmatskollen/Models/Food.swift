@@ -122,6 +122,16 @@ final class Food {
 // MARK: - Startdatabas med vanliga ingredienser
 
 extension Food {
+    static func hasDuplicateName(_ candidate: String, in foods: [Food]) -> Bool {
+        let trimmedCandidate = candidate.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedCandidate.isEmpty else { return false }
+
+        return foods.contains { food in
+            food.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                .localizedCaseInsensitiveCompare(trimmedCandidate) == .orderedSame
+        }
+    }
+
     /// Returnerar en lista med vanliga ingredienser att seeda databasen med
     static func seedData() -> [Food] {
         [
