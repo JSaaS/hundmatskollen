@@ -333,7 +333,7 @@ struct WeekView: View {
             return "Idag"
         }
         if selectedEntry.date > todayStartOfDay {
-            return selectedEntry.hasEntries ? "Planerad/loggad" : "Kommande dag"
+            return selectedEntry.hasEntries ? "Planerad eller loggad" : "Ingen planering"
         }
         if !selectedEntry.meals.isEmpty {
             return "Loggad dag"

@@ -10,6 +10,15 @@ enum MealType: String, Codable, CaseIterable {
     case dinner    = "Middag"
     case snack     = "Snacks/Belöning"
 
+    var displayTitle: String {
+        switch self {
+        case .snack:
+            return "Belöning"
+        default:
+            return rawValue
+        }
+    }
+
     var suggestedHour: Int {
         switch self {
         case .breakfast:
@@ -144,11 +153,11 @@ final class PlannedMeal {
             return trimmedTitle
         }
 
-        return type.rawValue
+        return type.displayTitle
     }
 
     var sourceLabel: String {
-        recipe == nil ? "Fri måltid" : "Recept"
+        recipe == nil ? "Eget mål" : "Recept"
     }
 }
 

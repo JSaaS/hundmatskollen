@@ -38,7 +38,7 @@ struct AddDogView: View {
                 }
 
                 Section("Hälsa & mål") {
-                    Picker("Status", selection: $healthStatus) {
+                    Picker("Livsfas / hälsa", selection: $healthStatus) {
                         ForEach(HealthStatus.profileOptions, id: \.self) { Text($0.rawValue) }
                     }
                     ContextDescription(text: healthStatus.description)
@@ -49,7 +49,7 @@ struct AddDogView: View {
                     ContextDescription(text: activityLevel.description)
 
                     Picker("Mål", selection: $feedingGoal) {
-                        ForEach(FeedingGoal.allCases, id: \.self) { Text($0.rawValue) }
+                        ForEach(FeedingGoal.allCases, id: \.self) { Text($0.displayTitle) }
                     }
                     ContextDescription(text: feedingGoal.description)
                 }
@@ -190,7 +190,7 @@ struct EditDogView: View {
             }
 
             Section("Hälsa & mål") {
-                Picker("Status", selection: $healthStatus) {
+                Picker("Livsfas / hälsa", selection: $healthStatus) {
                     ForEach(HealthStatus.profileOptions, id: \.self) { Text($0.rawValue) }
                 }
                 ContextDescription(text: healthStatus.description)
@@ -201,7 +201,7 @@ struct EditDogView: View {
                 ContextDescription(text: activityLevel.description)
 
                 Picker("Mål", selection: $feedingGoal) {
-                    ForEach(FeedingGoal.allCases, id: \.self) { Text($0.rawValue) }
+                    ForEach(FeedingGoal.allCases, id: \.self) { Text($0.displayTitle) }
                 }
                 ContextDescription(text: feedingGoal.description)
             }

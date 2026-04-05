@@ -319,14 +319,14 @@ struct PlannedMealEditorView: View {
 
                     Picker("Typ", selection: $mealType) {
                         ForEach(MealType.allCases, id: \.self) { type in
-                            Text(type.rawValue).tag(type)
+                            Text(type.displayTitle).tag(type)
                         }
                     }
                 }
 
                 Section("Innehåll") {
                     Picker("Recept", selection: $selectedRecipeID) {
-                        Text("Fri måltid").tag(Optional<PersistentIdentifier>.none)
+                        Text("Eget mål").tag(Optional<PersistentIdentifier>.none)
                         ForEach(availableRecipes) { recipe in
                             Text(recipe.name).tag(Optional(recipe.persistentModelID))
                         }
@@ -479,7 +479,7 @@ private struct LoggedMealSummaryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(meal.type.rawValue)
+                Text(meal.type.displayTitle)
                     .font(.headline)
                 Spacer()
                 Text(meal.date.formatted(date: .omitted, time: .shortened))

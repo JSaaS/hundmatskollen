@@ -42,7 +42,7 @@ struct AddMealView: View {
                     DatePicker("Tid", selection: dateBinding, displayedComponents: [.date, .hourAndMinute])
                     Picker("Typ", selection: $type) {
                         ForEach(MealType.allCases, id: \.self) { mealType in
-                            Text(mealType.rawValue).tag(mealType)
+                            Text(mealType.displayTitle).tag(mealType)
                         }
                     }
                     TextField("Vätska (ml)", text: $waterText)
