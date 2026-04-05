@@ -4,6 +4,7 @@ import SwiftData
 struct AddFoodView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Food.name) private var foods: [Food]
 
     @State private var name = ""
     @State private var category: FoodCategory = .other
@@ -15,6 +16,7 @@ struct AddFoodView: View {
     @State private var fiberText = ""
     @State private var isDangerousForDogs = false
     @State private var dangerNote = ""
+    @State private var isShowingDuplicateWarning = false
 
     var body: some View {
         NavigationStack {
@@ -64,11 +66,19 @@ struct AddFoodView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Spara") {
-                        saveFood()
+                        saveFoodTapped()
                     }
                     .disabled(!isFormValid)
                 }
             }
+        }
+        .alert("Liknande ingrediens finns redan", isPresented: $isShowingDuplicateWarning) {
+            Button("Skapa ändå") {
+                persistFood()
+            }
+            Button("Avbryt", role: .cancel) {}
+        } message: {
+            Text("Det finns redan en ingrediens med samma namn. Vill du ändå skapa en ny?")
         }
     }
 
@@ -90,7 +100,22 @@ struct AddFoodView: View {
         dangerNote.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private func saveFood() {
+    private var hasDuplicateName: Bool {
+        Food.hasDuplicateName(trimmedName, in: foods)
+    }
+
+    private func saveFoodTapped() {
+        guard isFormValid else { return }
+
+        if hasDuplicateName {
+            isShowingDuplicateWarning = true
+            return
+        }
+
+        persistFood()
+    }
+
+    private func persistFood() {
         guard
             let calories = parsedValue(from: caloriesText),
             let protein = parsedValue(from: proteinText),
