@@ -62,6 +62,16 @@ final class MealItem {
     var fat: Double      { food?.fat(forGrams: grams)      ?? 0 }
     var carbs: Double    { food?.carbs(forGrams: grams)    ?? 0 }
     var fiber: Double    { food?.fiber(forGrams: grams)    ?? 0 }
+    var calcium: Double? { food?.calcium(forGrams: grams) }
+    var phosphorus: Double? { food?.phosphorus(forGrams: grams) }
+    var magnesium: Double? { food?.magnesium(forGrams: grams) }
+    var iron: Double? { food?.iron(forGrams: grams) }
+    var zinc: Double? { food?.zinc(forGrams: grams) }
+    var sodium: Double? { food?.sodium(forGrams: grams) }
+    var vitaminA: Double? { food?.vitaminA(forGrams: grams) }
+    var vitaminD: Double? { food?.vitaminD(forGrams: grams) }
+    var vitaminE: Double? { food?.vitaminE(forGrams: grams) }
+    var vitaminB12: Double? { food?.vitaminB12(forGrams: grams) }
     var fluidMl: Double {
         guard food?.preferredUnit == .milliliters else { return 0 }
         return grams
@@ -103,6 +113,16 @@ final class Meal {
     var totalCarbs: Double    { items.reduce(0) { $0 + $1.carbs    } }
     var totalFiber: Double    { items.reduce(0) { $0 + $1.fiber    } }
     var totalGrams: Double    { items.reduce(0) { $0 + $1.grams    } }
+    var totalCalcium: Double? { items.sum(of: \.calcium) }
+    var totalPhosphorus: Double? { items.sum(of: \.phosphorus) }
+    var totalMagnesium: Double? { items.sum(of: \.magnesium) }
+    var totalIron: Double? { items.sum(of: \.iron) }
+    var totalZinc: Double? { items.sum(of: \.zinc) }
+    var totalSodium: Double? { items.sum(of: \.sodium) }
+    var totalVitaminA: Double? { items.sum(of: \.vitaminA) }
+    var totalVitaminD: Double? { items.sum(of: \.vitaminD) }
+    var totalVitaminE: Double? { items.sum(of: \.vitaminE) }
+    var totalVitaminB12: Double? { items.sum(of: \.vitaminB12) }
     var totalFluidFromItemsMl: Double { items.reduce(0) { $0 + $1.fluidMl } }
     var totalWaterMl: Double { waterMl + totalFluidFromItemsMl }
 
@@ -171,6 +191,16 @@ struct DailyNutrition {
     var carbs: Double    = 0
     var fiber: Double    = 0
     var waterMl: Double  = 0
+    var calcium: Double? = nil
+    var phosphorus: Double? = nil
+    var magnesium: Double? = nil
+    var iron: Double? = nil
+    var zinc: Double? = nil
+    var sodium: Double? = nil
+    var vitaminA: Double? = nil
+    var vitaminD: Double? = nil
+    var vitaminE: Double? = nil
+    var vitaminB12: Double? = nil
 
     /// Beräknar hur stor andel av hundens dagsbehov som är uppfyllt (0–1)
     func progress(for dog: Dog) -> NutritionProgress {
@@ -207,6 +237,39 @@ extension [Meal] {
             result.carbs    += meal.totalCarbs
             result.fiber    += meal.totalFiber
             result.waterMl  += meal.totalWaterMl
+            result.calcium = DailyNutrition.accumulated(result.calcium, adding: meal.totalCalcium)
+            result.phosphorus = DailyNutrition.accumulated(result.phosphorus, adding: meal.totalPhosphorus)
+            result.magnesium = DailyNutrition.accumulated(result.magnesium, adding: meal.totalMagnesium)
+            result.iron = DailyNutrition.accumulated(result.iron, adding: meal.totalIron)
+            result.zinc = DailyNutrition.accumulated(result.zinc, adding: meal.totalZinc)
+            result.sodium = DailyNutrition.accumulated(result.sodium, adding: meal.totalSodium)
+            result.vitaminA = DailyNutrition.accumulated(result.vitaminA, adding: meal.totalVitaminA)
+            result.vitaminD = DailyNutrition.accumulated(result.vitaminD, adding: meal.totalVitaminD)
+            result.vitaminE = DailyNutrition.accumulated(result.vitaminE, adding: meal.totalVitaminE)
+            result.vitaminB12 = DailyNutrition.accumulated(result.vitaminB12, adding: meal.totalVitaminB12)
+        }
+    }
+}
+
+private extension Collection {
+    func sum(of keyPath: KeyPath<Element, Double?>) -> Double? {
+        let values = compactMap { $0[keyPath: keyPath] }
+        guard !values.isEmpty else { return nil }
+        return values.reduce(0, +)
+    }
+}
+
+private extension DailyNutrition {
+    static func accumulated(_ current: Double?, adding next: Double?) -> Double? {
+        switch (current, next) {
+        case let (.some(current), .some(next)):
+            return current + next
+        case let (.some(current), .none):
+            return current
+        case let (.none, .some(next)):
+            return next
+        case (.none, .none):
+            return nil
         }
     }
 }

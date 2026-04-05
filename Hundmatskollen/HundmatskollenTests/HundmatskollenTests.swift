@@ -194,6 +194,57 @@ struct HundmatskollenTests {
         #expect(food.vitaminB12 == 70.7)
     }
 
+    @Test("Mikronäringsmetoder skalar värden per gram korrekt")
+    func micronutrientScalingUsesPerHundredGramValues() {
+        let food = Food(
+            name: "Sardin",
+            category: .fish,
+            caloriesPer100g: 150,
+            proteinPer100g: 20,
+            fatPer100g: 9,
+            carbsPer100g: 0,
+            fiberPer100g: 0,
+            calcium: 250,
+            phosphorus: 300,
+            magnesium: 35,
+            iron: 2.7,
+            zinc: 1.3,
+            sodium: 180,
+            vitaminA: 45,
+            vitaminD: 4.8,
+            vitaminE: 2.1,
+            vitaminB12: 8.9
+        )
+
+        #expect(food.calcium(forGrams: 40) == 100)
+        #expect(food.phosphorus(forGrams: 40) == 120)
+        #expect(food.magnesium(forGrams: 40) == 14)
+        #expect(food.iron(forGrams: 40) == 1.08)
+        #expect(food.zinc(forGrams: 40) == 0.52)
+        #expect(food.sodium(forGrams: 40) == 72)
+        #expect(food.vitaminA(forGrams: 40) == 18)
+        #expect(food.vitaminD(forGrams: 40) == 1.92)
+        #expect(food.vitaminE(forGrams: 40) == 0.84)
+        #expect(food.vitaminB12(forGrams: 40) == 3.56)
+    }
+
+    @Test("Mikronäringsmetoder returnerar nil när värdet saknas")
+    func micronutrientScalingReturnsNilWhenMissing() {
+        let food = Food(
+            name: "Kyckling",
+            category: .meat,
+            caloriesPer100g: 110,
+            proteinPer100g: 23,
+            fatPer100g: 2,
+            carbsPer100g: 0,
+            fiberPer100g: 0
+        )
+
+        #expect(food.calcium(forGrams: 50) == nil)
+        #expect(food.vitaminD(forGrams: 50) == nil)
+        #expect(food.vitaminB12(forGrams: 50) == nil)
+    }
+
     @Test("ModelContainer startar med uppdaterad Food-modell")
     @MainActor
     func modelContainerStartsWithMicronutrientFields() throws {
@@ -398,6 +449,55 @@ struct HundmatskollenTests {
         #expect(abs(daily.calories - 300) < 0.01)
         #expect(abs(daily.protein - 60) < 0.01)
         #expect(abs(daily.waterMl - 400) < 0.01)
+    }
+
+    @Test("DailyNutrition summerar mikronäring med blandade nil-värden")
+    func dailyNutritionSumsMicronutrientsWithMixedValues() {
+        let calciumRichFood = Food(
+            name: "Benmjöl",
+            category: .supplements,
+            caloriesPer100g: 200,
+            proteinPer100g: 0,
+            fatPer100g: 0,
+            carbsPer100g: 0,
+            fiberPer100g: 0,
+            calcium: 1200,
+            phosphorus: 600
+        )
+        let plainFood = Food(
+            name: "Ris",
+            category: .grains,
+            caloriesPer100g: 130,
+            proteinPer100g: 2,
+            fatPer100g: 0.3,
+            carbsPer100g: 28,
+            fiberPer100g: 0.4
+        )
+        let zincFood = Food(
+            name: "Nötkött",
+            category: .meat,
+            caloriesPer100g: 250,
+            proteinPer100g: 26,
+            fatPer100g: 15,
+            carbsPer100g: 0,
+            fiberPer100g: 0,
+            zinc: 4.0
+        )
+
+        let breakfast = Meal(type: .breakfast)
+        breakfast.items.append(MealItem(food: calciumRichFood, grams: 10))
+        breakfast.items.append(MealItem(food: plainFood, grams: 100))
+
+        let dinner = Meal(type: .dinner)
+        dinner.items.append(MealItem(food: zincFood, grams: 50))
+
+        let daily = [breakfast, dinner].dailyNutrition()
+
+        #expect(daily.calcium == 120)
+        #expect(daily.phosphorus == 60)
+        #expect(daily.zinc == 2)
+        #expect(daily.magnesium == nil)
+        #expect(daily.vitaminB12 == nil)
     }
 
     @Test("Vätska kan loggas utan ingredienser")
