@@ -394,6 +394,36 @@ struct HundmatskollenTests {
         #expect(oats?.category == .grains)
     }
 
+    @Test("Seedad kött- och fiskdata innehåller prioriterade mikronäringsvärden")
+    func seedMeatAndFishIncludePrioritizedMicronutrients() {
+        let targetedFoods = Set([
+            "Kycklingfilé",
+            "Nötfärs (10%)",
+            "Lammlår",
+            "Fläskfilé",
+            "Kalvlever",
+            "Kycklinglever",
+            "Lax",
+            "Torsk",
+            "Makrill",
+            "Sardiner (vatten)"
+        ])
+
+        let foods = Food.seedData().filter { targetedFoods.contains($0.name) }
+
+        #expect(foods.count == targetedFoods.count)
+
+        for food in foods {
+            #expect(food.calcium != nil)
+            #expect(food.phosphorus != nil)
+            #expect(food.iron != nil)
+            #expect(food.zinc != nil)
+            #expect(food.vitaminA != nil)
+            #expect(food.vitaminD != nil)
+            #expect(food.vitaminE != nil)
+        }
+    }
+
     @Test("Custom-ingrediens är inte farlig som standard")
     func customFoodIsNotDangerousByDefault() {
         let customFood = Food(
