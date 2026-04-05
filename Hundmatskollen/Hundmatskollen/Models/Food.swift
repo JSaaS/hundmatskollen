@@ -132,6 +132,16 @@ final class Food {
     func fat(forGrams grams: Double) -> Double      { fatPer100g      * grams / 100 }
     func carbs(forGrams grams: Double) -> Double    { carbsPer100g    * grams / 100 }
     func fiber(forGrams grams: Double) -> Double    { fiberPer100g    * grams / 100 }
+    func calcium(forGrams grams: Double) -> Double? { calcium.map { $0 * grams / 100 } }
+    func phosphorus(forGrams grams: Double) -> Double? { phosphorus.map { $0 * grams / 100 } }
+    func magnesium(forGrams grams: Double) -> Double? { magnesium.map { $0 * grams / 100 } }
+    func iron(forGrams grams: Double) -> Double? { iron.map { $0 * grams / 100 } }
+    func zinc(forGrams grams: Double) -> Double? { zinc.map { $0 * grams / 100 } }
+    func sodium(forGrams grams: Double) -> Double? { sodium.map { $0 * grams / 100 } }
+    func vitaminA(forGrams grams: Double) -> Double? { vitaminA.map { $0 * grams / 100 } }
+    func vitaminD(forGrams grams: Double) -> Double? { vitaminD.map { $0 * grams / 100 } }
+    func vitaminE(forGrams grams: Double) -> Double? { vitaminE.map { $0 * grams / 100 } }
+    func vitaminB12(forGrams grams: Double) -> Double? { vitaminB12.map { $0 * grams / 100 } }
 
     var preferredUnit: FoodMeasurementUnit {
         get { FoodMeasurementUnit(rawValue: preferredUnitRawValue ?? "") ?? .grams }
