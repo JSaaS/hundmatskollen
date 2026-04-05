@@ -137,6 +137,17 @@ enum FeedingGoal: String, Codable, CaseIterable {
     case loseWeight = "Viktnedgång"
     case gainWeight = "Viktuppgång"
 
+    var displayTitle: String {
+        switch self {
+        case .maintain:
+            return "Behåll vikt"
+        case .loseWeight:
+            return "Gå ner i vikt"
+        case .gainWeight:
+            return "Gå upp i vikt"
+        }
+    }
+
     var description: String {
         switch self {
         case .maintain:

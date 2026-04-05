@@ -130,7 +130,7 @@ struct TodayView: View {
                                 ForEach(todayMeals) { meal in
                                     VStack(alignment: .leading, spacing: 8) {
                                         HStack {
-                                            Text(meal.type.rawValue)
+                                            Text(meal.type.displayTitle)
                                                 .font(.headline)
                                             Spacer()
                                             Text(meal.date.formatted(date: .omitted, time: .shortened))

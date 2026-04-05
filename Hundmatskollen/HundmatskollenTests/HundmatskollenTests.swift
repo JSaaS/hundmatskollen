@@ -191,8 +191,8 @@ struct HundmatskollenTests {
         )
 
         #expect(freeMeal.displayTitle == "Lätt lunch")
-        #expect(freeMeal.sourceLabel == "Fri måltid")
-        #expect(unnamedMeal.displayTitle == MealType.snack.rawValue)
+        #expect(freeMeal.sourceLabel == "Eget mål")
+        #expect(unnamedMeal.displayTitle == MealType.snack.displayTitle)
     }
 
     @Test("Seed-data placerar ingredienser i rätt kategorier")
