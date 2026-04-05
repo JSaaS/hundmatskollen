@@ -5,6 +5,8 @@ struct TodayView: View {
     @Query(sort: \Dog.createdAt) private var dogs: [Dog]
     @Query(sort: \Meal.date, order: .reverse) private var meals: [Meal]
     @Query(sort: \Recipe.createdAt, order: .reverse) private var recipes: [Recipe]
+    @AppStorage(SettingsKeys.weightUnit) private var weightUnitRawValue = WeightDisplayUnit.kilograms.rawValue
+    @AppStorage(SettingsKeys.volumeUnit) private var volumeUnitRawValue = VolumeDisplayUnit.milliliters.rawValue
 
     @State private var selectedDogID: PersistentIdentifier?
     @State private var isPresentingAddMeal = false
@@ -63,31 +65,31 @@ struct TodayView: View {
                             )
                             NutritionProgressRow(
                                 title: "Protein",
-                                consumedText: "\(Int(todayNutrition.protein)) / \(Int(selectedDog.dailyProteinGrams)) g",
+                                consumedText: "\(DisplayFormatter.massText(fromGrams: todayNutrition.protein, unit: weightDisplayUnit)) / \(DisplayFormatter.massText(fromGrams: selectedDog.dailyProteinGrams, unit: weightDisplayUnit))",
                                 progress: todayProgress.protein,
                                 tint: .red
                             )
                             NutritionProgressRow(
                                 title: "Fett",
-                                consumedText: "\(Int(todayNutrition.fat)) / \(Int(selectedDog.dailyFatGrams)) g",
+                                consumedText: "\(DisplayFormatter.massText(fromGrams: todayNutrition.fat, unit: weightDisplayUnit)) / \(DisplayFormatter.massText(fromGrams: selectedDog.dailyFatGrams, unit: weightDisplayUnit))",
                                 progress: todayProgress.fat,
                                 tint: .yellow
                             )
                             NutritionProgressRow(
                                 title: "Kolhydrater",
-                                consumedText: "\(Int(todayNutrition.carbs)) / \(Int(selectedDog.dailyCarbGrams)) g",
+                                consumedText: "\(DisplayFormatter.massText(fromGrams: todayNutrition.carbs, unit: weightDisplayUnit)) / \(DisplayFormatter.massText(fromGrams: selectedDog.dailyCarbGrams, unit: weightDisplayUnit))",
                                 progress: todayProgress.carbs,
                                 tint: .green
                             )
                             NutritionProgressRow(
                                 title: "Fiber",
-                                consumedText: "\(Int(todayNutrition.fiber)) / \(Int(selectedDog.dailyFiberGrams)) g",
+                                consumedText: "\(DisplayFormatter.massText(fromGrams: todayNutrition.fiber, unit: weightDisplayUnit)) / \(DisplayFormatter.massText(fromGrams: selectedDog.dailyFiberGrams, unit: weightDisplayUnit))",
                                 progress: todayProgress.fiber,
                                 tint: .mint
                             )
                             NutritionProgressRow(
                                 title: "Vätska",
-                                consumedText: "\(Int(todayNutrition.waterMl)) / \(Int(selectedDog.dailyWaterMl)) ml",
+                                consumedText: "\(DisplayFormatter.volumeText(fromMilliliters: todayNutrition.waterMl, unit: volumeDisplayUnit)) / \(DisplayFormatter.volumeText(fromMilliliters: selectedDog.dailyWaterMl, unit: volumeDisplayUnit))",
                                 progress: todayProgress.water,
                                 tint: .blue
                             )
@@ -154,7 +156,7 @@ struct TodayView: View {
                                             .foregroundStyle(.secondary)
 
                                         if meal.totalWaterMl > 0 {
-                                            Text("\(Int(meal.totalWaterMl)) ml vätska")
+                                            Text("\(DisplayFormatter.volumeText(fromMilliliters: meal.totalWaterMl, unit: volumeDisplayUnit)) vätska")
                                                 .font(.subheadline)
                                                 .foregroundStyle(.secondary)
                                         }
@@ -223,5 +225,13 @@ struct TodayView: View {
         }
 
         return todayNutrition.progress(for: selectedDog)
+    }
+
+    private var volumeDisplayUnit: VolumeDisplayUnit {
+        VolumeDisplayUnit(rawValue: volumeUnitRawValue) ?? .milliliters
+    }
+
+    private var weightDisplayUnit: WeightDisplayUnit {
+        WeightDisplayUnit(rawValue: weightUnitRawValue) ?? .kilograms
     }
 }

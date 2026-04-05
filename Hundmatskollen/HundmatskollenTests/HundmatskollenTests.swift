@@ -355,4 +355,74 @@ struct HundmatskollenTests {
         #expect(progress.fiber <= 1.0)
         #expect(progress.water <= 1.0)
     }
+
+    @Test("Vikt kan visas i pounds och konverteras tillbaka till kilo")
+    func weightDisplayConversionUsesPounds() {
+        let displayed = DisplayFormatter.weightText(fromKilograms: 10, unit: .pounds)
+        let metric = DisplayFormatter.metricWeight(fromDisplayValue: 22.0462, unit: .pounds)
+
+        #expect(displayed == "22.0 lb")
+        #expect(abs(metric - 10) < 0.01)
+    }
+
+    @Test("Volym kan visas i fluid ounces och konverteras tillbaka till milliliter")
+    func volumeDisplayConversionUsesFluidOunces() {
+        let displayed = DisplayFormatter.volumeText(fromMilliliters: 100, unit: .fluidOunces)
+        let metric = DisplayFormatter.metricFoodAmount(
+            fromDisplayValue: 3.3814,
+            foodUnit: .milliliters,
+            weightUnit: .kilograms,
+            volumeUnit: .fluidOunces
+        )
+
+        #expect(displayed == "3.4 fl oz")
+        #expect(abs(metric - 100) < 0.2)
+    }
+
+    @Test("Makrovärden kan visas i ounces när viktinställningen är imperial")
+    func massDisplayConversionUsesOunces() {
+        let displayed = DisplayFormatter.massText(fromGrams: 56.699, unit: .pounds)
+
+        #expect(displayed == "2 oz")
+    }
+
+    @Test("Gram-baserad ingrediens kan visas i ounces och konverteras tillbaka")
+    func foodAmountConversionForGramBasedFoodUsesOunces() {
+        let displayedValue = DisplayFormatter.displayFoodAmountValue(
+            fromMetricAmount: 85.0485,
+            foodUnit: .grams,
+            weightUnit: .pounds,
+            volumeUnit: .milliliters
+        )
+        let metricValue = DisplayFormatter.metricFoodAmount(
+            fromDisplayValue: 3,
+            foodUnit: .grams,
+            weightUnit: .pounds,
+            volumeUnit: .milliliters
+        )
+
+        #expect(abs(displayedValue - 3) < 0.01)
+        #expect(abs(metricValue - 85.0485) < 0.01)
+        #expect(DisplayFormatter.foodAmountUnitLabel(for: .grams, weightUnit: .pounds, volumeUnit: .milliliters) == "oz")
+    }
+
+    @Test("Milliliter-baserad ingrediens kan visas i fluid ounces och konverteras tillbaka")
+    func foodAmountConversionForMilliliterFoodUsesFluidOunces() {
+        let displayedValue = DisplayFormatter.displayFoodAmountValue(
+            fromMetricAmount: 59.147,
+            foodUnit: .milliliters,
+            weightUnit: .kilograms,
+            volumeUnit: .fluidOunces
+        )
+        let metricValue = DisplayFormatter.metricFoodAmount(
+            fromDisplayValue: 2,
+            foodUnit: .milliliters,
+            weightUnit: .kilograms,
+            volumeUnit: .fluidOunces
+        )
+
+        #expect(abs(displayedValue - 2) < 0.01)
+        #expect(abs(metricValue - 59.147) < 0.01)
+        #expect(DisplayFormatter.foodAmountUnitLabel(for: .milliliters, weightUnit: .kilograms, volumeUnit: .fluidOunces) == "fl oz")
+    }
 }

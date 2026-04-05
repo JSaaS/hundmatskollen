@@ -4,6 +4,8 @@ import SwiftData
 struct DayDetailView: View {
     @Query(sort: \Meal.date, order: .forward) private var meals: [Meal]
     @Query(sort: \PlannedMeal.scheduledDate, order: .forward) private var plannedMeals: [PlannedMeal]
+    @AppStorage(SettingsKeys.weightUnit) private var weightUnitRawValue = WeightDisplayUnit.kilograms.rawValue
+    @AppStorage(SettingsKeys.volumeUnit) private var volumeUnitRawValue = VolumeDisplayUnit.milliliters.rawValue
 
     let dog: Dog
     let date: Date
@@ -95,31 +97,31 @@ struct DayDetailView: View {
                 )
                 NutritionProgressRow(
                     title: "Protein",
-                    consumedText: "\(Int(nutrition.protein)) / \(Int(dog.dailyProteinGrams)) g",
+                    consumedText: "\(DisplayFormatter.massText(fromGrams: nutrition.protein, unit: weightDisplayUnit)) / \(DisplayFormatter.massText(fromGrams: dog.dailyProteinGrams, unit: weightDisplayUnit))",
                     progress: progress.protein,
                     tint: .red
                 )
                 NutritionProgressRow(
                     title: "Fett",
-                    consumedText: "\(Int(nutrition.fat)) / \(Int(dog.dailyFatGrams)) g",
+                    consumedText: "\(DisplayFormatter.massText(fromGrams: nutrition.fat, unit: weightDisplayUnit)) / \(DisplayFormatter.massText(fromGrams: dog.dailyFatGrams, unit: weightDisplayUnit))",
                     progress: progress.fat,
                     tint: .yellow
                 )
                 NutritionProgressRow(
                     title: "Kolhydrater",
-                    consumedText: "\(Int(nutrition.carbs)) / \(Int(dog.dailyCarbGrams)) g",
+                    consumedText: "\(DisplayFormatter.massText(fromGrams: nutrition.carbs, unit: weightDisplayUnit)) / \(DisplayFormatter.massText(fromGrams: dog.dailyCarbGrams, unit: weightDisplayUnit))",
                     progress: progress.carbs,
                     tint: .green
                 )
                 NutritionProgressRow(
                     title: "Fiber",
-                    consumedText: "\(Int(nutrition.fiber)) / \(Int(dog.dailyFiberGrams)) g",
+                    consumedText: "\(DisplayFormatter.massText(fromGrams: nutrition.fiber, unit: weightDisplayUnit)) / \(DisplayFormatter.massText(fromGrams: dog.dailyFiberGrams, unit: weightDisplayUnit))",
                     progress: progress.fiber,
                     tint: .mint
                 )
                 NutritionProgressRow(
                     title: "Vätska",
-                    consumedText: "\(Int(nutrition.waterMl)) / \(Int(dog.dailyWaterMl)) ml",
+                    consumedText: "\(DisplayFormatter.volumeText(fromMilliliters: nutrition.waterMl, unit: volumeDisplayUnit)) / \(DisplayFormatter.volumeText(fromMilliliters: dog.dailyWaterMl, unit: volumeDisplayUnit))",
                     progress: progress.water,
                     tint: .blue
                 )
@@ -128,11 +130,11 @@ struct DayDetailView: View {
             if !dayPlannedMeals.isEmpty {
                 Section("Planerat idag") {
                     LabeledContent("Kalorier", value: "\(Int(plannedNutrition.calories)) kcal")
-                    LabeledContent("Protein", value: "\(Int(plannedNutrition.protein)) g")
-                    LabeledContent("Fett", value: "\(Int(plannedNutrition.fat)) g")
-                    LabeledContent("Kolhydrater", value: "\(Int(plannedNutrition.carbs)) g")
-                    LabeledContent("Fiber", value: "\(Int(plannedNutrition.fiber)) g")
-                    LabeledContent("Vätska", value: "\(Int(plannedNutrition.waterMl)) ml")
+                    LabeledContent("Protein", value: DisplayFormatter.massText(fromGrams: plannedNutrition.protein, unit: weightDisplayUnit))
+                    LabeledContent("Fett", value: DisplayFormatter.massText(fromGrams: plannedNutrition.fat, unit: weightDisplayUnit))
+                    LabeledContent("Kolhydrater", value: DisplayFormatter.massText(fromGrams: plannedNutrition.carbs, unit: weightDisplayUnit))
+                    LabeledContent("Fiber", value: DisplayFormatter.massText(fromGrams: plannedNutrition.fiber, unit: weightDisplayUnit))
+                    LabeledContent("Vätska", value: DisplayFormatter.volumeText(fromMilliliters: plannedNutrition.waterMl, unit: volumeDisplayUnit))
 
                     if !uncountedPlannedMeals.isEmpty {
                         Label(
@@ -152,27 +154,27 @@ struct DayDetailView: View {
                     )
                     DifferenceRow(
                         title: "Protein",
-                        valueText: signedText(for: deltaToPlan.protein, unit: "g"),
+                        valueText: signedMassText(for: deltaToPlan.protein),
                         valueColor: differenceColor(for: deltaToPlan.protein)
                     )
                     DifferenceRow(
                         title: "Fett",
-                        valueText: signedText(for: deltaToPlan.fat, unit: "g"),
+                        valueText: signedMassText(for: deltaToPlan.fat),
                         valueColor: differenceColor(for: deltaToPlan.fat)
                     )
                     DifferenceRow(
                         title: "Kolhydrater",
-                        valueText: signedText(for: deltaToPlan.carbs, unit: "g"),
+                        valueText: signedMassText(for: deltaToPlan.carbs),
                         valueColor: differenceColor(for: deltaToPlan.carbs)
                     )
                     DifferenceRow(
                         title: "Fiber",
-                        valueText: signedText(for: deltaToPlan.fiber, unit: "g"),
+                        valueText: signedMassText(for: deltaToPlan.fiber),
                         valueColor: differenceColor(for: deltaToPlan.fiber)
                     )
                     DifferenceRow(
                         title: "Vätska",
-                        valueText: signedText(for: deltaToPlan.waterMl, unit: "ml"),
+                        valueText: signedVolumeText(for: deltaToPlan.waterMl),
                         valueColor: differenceColor(for: deltaToPlan.waterMl)
                     )
                 }
@@ -255,12 +257,30 @@ struct DayDetailView: View {
         return "\(roundedValue) \(unit)"
     }
 
+    private func signedVolumeText(for value: Double) -> String {
+        let prefix = value > 0 ? "+" : ""
+        return "\(prefix)\(DisplayFormatter.volumeText(fromMilliliters: value, unit: volumeDisplayUnit))"
+    }
+
+    private func signedMassText(for value: Double) -> String {
+        let prefix = value > 0 ? "+" : ""
+        return "\(prefix)\(DisplayFormatter.massText(fromGrams: value, unit: weightDisplayUnit))"
+    }
+
     private func differenceColor(for value: Double) -> Color {
         let roundedValue = Int(value.rounded())
         if roundedValue == 0 {
             return .secondary
         }
         return roundedValue > 0 ? .green : .orange
+    }
+
+    private var volumeDisplayUnit: VolumeDisplayUnit {
+        VolumeDisplayUnit(rawValue: volumeUnitRawValue) ?? .milliliters
+    }
+
+    private var weightDisplayUnit: WeightDisplayUnit {
+        WeightDisplayUnit(rawValue: weightUnitRawValue) ?? .kilograms
     }
 }
 
@@ -503,7 +523,7 @@ private struct LoggedMealSummaryView: View {
                 .foregroundStyle(.secondary)
 
             if meal.totalWaterMl > 0 {
-                Text("\(Int(meal.totalWaterMl)) ml vätska")
+                Text("\(DisplayFormatter.volumeText(fromMilliliters: meal.totalWaterMl, unit: volumeDisplayUnit)) vätska")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -514,6 +534,12 @@ private struct LoggedMealSummaryView: View {
                     .foregroundStyle(.secondary)
             }
         }
+    }
+
+    @AppStorage(SettingsKeys.volumeUnit) private var volumeUnitRawValue = VolumeDisplayUnit.milliliters.rawValue
+
+    private var volumeDisplayUnit: VolumeDisplayUnit {
+        VolumeDisplayUnit(rawValue: volumeUnitRawValue) ?? .milliliters
     }
 }
 

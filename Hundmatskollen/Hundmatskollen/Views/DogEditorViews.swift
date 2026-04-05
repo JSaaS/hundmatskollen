@@ -4,6 +4,8 @@ import SwiftData
 struct AddDogView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @AppStorage(SettingsKeys.weightUnit) private var weightUnitRawValue = WeightDisplayUnit.kilograms.rawValue
+    @AppStorage(SettingsKeys.volumeUnit) private var volumeUnitRawValue = VolumeDisplayUnit.milliliters.rawValue
 
     @State private var name = ""
     @State private var breed = ""
@@ -25,10 +27,17 @@ struct AddDogView: View {
                     }
 
                     TextField("Ras", text: $breed)
-                    TextField("Vikt (kg)", text: $weightText)
-                        .keyboardType(.decimalPad)
+                    LabeledContent("Vikt") {
+                        HStack(spacing: 8) {
+                            TextField("Vikt", text: $weightText)
+                                .keyboardType(.decimalPad)
+                                .multilineTextAlignment(.trailing)
+                            Text(weightDisplayUnit.rawValue)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                     if shouldShowWeightError {
-                        ValidationMessage(text: "Ange en giltig vikt över 0 kg.")
+                        ValidationMessage(text: "Ange en giltig vikt över 0 \(weightDisplayUnit.rawValue).")
                     }
 
                     DatePicker("Födelsedatum", selection: $birthDate, displayedComponents: .date)
@@ -64,10 +73,10 @@ struct AddDogView: View {
                             feedingGoal: feedingGoal
                         )
                         LabeledContent("Kalorier/dag", value: "\(Int(tempDog.dailyCalories)) kcal")
-                        LabeledContent("Protein", value: "\(Int(tempDog.dailyProteinGrams)) g")
-                        LabeledContent("Fett", value: "\(Int(tempDog.dailyFatGrams)) g")
-                        LabeledContent("Kolhydrater", value: "\(Int(tempDog.dailyCarbGrams)) g")
-                        LabeledContent("Vatten", value: "\(Int(tempDog.dailyWaterMl)) ml")
+                        LabeledContent("Protein", value: DisplayFormatter.massText(fromGrams: tempDog.dailyProteinGrams, unit: weightDisplayUnit))
+                        LabeledContent("Fett", value: DisplayFormatter.massText(fromGrams: tempDog.dailyFatGrams, unit: weightDisplayUnit))
+                        LabeledContent("Kolhydrater", value: DisplayFormatter.massText(fromGrams: tempDog.dailyCarbGrams, unit: weightDisplayUnit))
+                        LabeledContent("Vatten", value: DisplayFormatter.volumeText(fromMilliliters: tempDog.dailyWaterMl, unit: volumeDisplayUnit))
                     } else {
                         Text("Ange vikt för att se beräkning")
                             .foregroundStyle(.secondary)
@@ -100,7 +109,7 @@ struct AddDogView: View {
     private var parsedWeight: Double? {
         let normalizedText = weightText.replacingOccurrences(of: ",", with: ".")
         guard let value = Double(normalizedText), value > 0 else { return nil }
-        return value
+        return DisplayFormatter.metricWeight(fromDisplayValue: value, unit: weightDisplayUnit)
     }
 
     private var isFormValid: Bool {
@@ -138,11 +147,21 @@ struct AddDogView: View {
 
         dismiss()
     }
+
+    private var weightDisplayUnit: WeightDisplayUnit {
+        WeightDisplayUnit(rawValue: weightUnitRawValue) ?? .kilograms
+    }
+
+    private var volumeDisplayUnit: VolumeDisplayUnit {
+        VolumeDisplayUnit(rawValue: volumeUnitRawValue) ?? .milliliters
+    }
 }
 
 struct EditDogView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @AppStorage(SettingsKeys.weightUnit) private var weightUnitRawValue = WeightDisplayUnit.kilograms.rawValue
+    @AppStorage(SettingsKeys.volumeUnit) private var volumeUnitRawValue = VolumeDisplayUnit.milliliters.rawValue
 
     let dog: Dog
 
@@ -160,7 +179,7 @@ struct EditDogView: View {
         self.dog = dog
         _name = State(initialValue: dog.name)
         _breed = State(initialValue: dog.breed)
-        _weightText = State(initialValue: String(format: "%.1f", dog.weightKg).replacingOccurrences(of: ".", with: ","))
+        _weightText = State(initialValue: "")
         _birthDate = State(initialValue: dog.birthDate)
         _gender = State(initialValue: dog.gender)
         _healthStatus = State(initialValue: dog.healthStatus)
@@ -177,10 +196,17 @@ struct EditDogView: View {
                 }
 
                 TextField("Ras", text: $breed)
-                TextField("Vikt (kg)", text: $weightText)
-                    .keyboardType(.decimalPad)
+                LabeledContent("Vikt") {
+                    HStack(spacing: 8) {
+                        TextField("Vikt", text: $weightText)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                        Text(weightDisplayUnit.rawValue)
+                            .foregroundStyle(.secondary)
+                    }
+                }
                 if shouldShowWeightError {
-                    ValidationMessage(text: "Ange en giltig vikt över 0 kg.")
+                    ValidationMessage(text: "Ange en giltig vikt över 0 \(weightDisplayUnit.rawValue).")
                 }
 
                 DatePicker("Födelsedatum", selection: $birthDate, displayedComponents: .date)
@@ -219,10 +245,10 @@ struct EditDogView: View {
                         feedingGoal: feedingGoal
                     )
                     LabeledContent("Kalorier/dag", value: "\(Int(tempDog.dailyCalories)) kcal")
-                    LabeledContent("Protein", value: "\(Int(tempDog.dailyProteinGrams)) g")
-                    LabeledContent("Fett", value: "\(Int(tempDog.dailyFatGrams)) g")
-                    LabeledContent("Kolhydrater", value: "\(Int(tempDog.dailyCarbGrams)) g")
-                    LabeledContent("Vatten", value: "\(Int(tempDog.dailyWaterMl)) ml")
+                    LabeledContent("Protein", value: DisplayFormatter.massText(fromGrams: tempDog.dailyProteinGrams, unit: weightDisplayUnit))
+                    LabeledContent("Fett", value: DisplayFormatter.massText(fromGrams: tempDog.dailyFatGrams, unit: weightDisplayUnit))
+                    LabeledContent("Kolhydrater", value: DisplayFormatter.massText(fromGrams: tempDog.dailyCarbGrams, unit: weightDisplayUnit))
+                    LabeledContent("Vatten", value: DisplayFormatter.volumeText(fromMilliliters: tempDog.dailyWaterMl, unit: volumeDisplayUnit))
                 } else {
                     Text("Ange vikt för att se beräkning")
                         .foregroundStyle(.secondary)
@@ -231,6 +257,12 @@ struct EditDogView: View {
         }
         .navigationTitle("Redigera hund")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            applyDisplayedWeight()
+        }
+        .onChange(of: weightUnitRawValue) { _, _ in
+            applyDisplayedWeight()
+        }
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Spara") {
@@ -249,7 +281,7 @@ struct EditDogView: View {
     private var editedWeight: Double? {
         let normalizedText = weightText.replacingOccurrences(of: ",", with: ".")
         guard let value = Double(normalizedText), value > 0 else { return nil }
-        return value
+        return DisplayFormatter.metricWeight(fromDisplayValue: value, unit: weightDisplayUnit)
     }
 
     private var isFormValid: Bool {
@@ -283,6 +315,21 @@ struct EditDogView: View {
         }
 
         dismiss()
+    }
+
+    private var weightDisplayUnit: WeightDisplayUnit {
+        WeightDisplayUnit(rawValue: weightUnitRawValue) ?? .kilograms
+    }
+
+    private var volumeDisplayUnit: VolumeDisplayUnit {
+        VolumeDisplayUnit(rawValue: volumeUnitRawValue) ?? .milliliters
+    }
+
+    private func applyDisplayedWeight() {
+        weightText = DisplayFormatter
+            .weightText(fromKilograms: dog.weightKg, unit: weightDisplayUnit)
+            .replacingOccurrences(of: " \(weightDisplayUnit.rawValue)", with: "")
+            .replacingOccurrences(of: ".", with: ",")
     }
 }
 
