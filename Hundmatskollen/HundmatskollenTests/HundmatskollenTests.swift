@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftData
 import Testing
 @testable import Hundmatskollen
 
@@ -133,6 +134,83 @@ struct HundmatskollenTests {
         food.preferredUnitRawValue = "invalid"
 
         #expect(food.preferredUnit == .grams)
+    }
+
+    @Test("Befintlig Food-init faller tillbaka till nil för mikronäringsfält")
+    func foodMicronutrientsDefaultToNil() {
+        let food = Food(
+            name: "Kyckling",
+            category: .meat,
+            caloriesPer100g: 110,
+            proteinPer100g: 23,
+            fatPer100g: 2,
+            carbsPer100g: 0,
+            fiberPer100g: 0
+        )
+
+        #expect(food.calcium == nil)
+        #expect(food.phosphorus == nil)
+        #expect(food.magnesium == nil)
+        #expect(food.iron == nil)
+        #expect(food.zinc == nil)
+        #expect(food.sodium == nil)
+        #expect(food.vitaminA == nil)
+        #expect(food.vitaminD == nil)
+        #expect(food.vitaminE == nil)
+        #expect(food.vitaminB12 == nil)
+    }
+
+    @Test("Food kan spara och läsa mikronäringsfält korrekt")
+    func foodStoresMicronutrients() {
+        let food = Food(
+            name: "Nötlever",
+            category: .meat,
+            caloriesPer100g: 135,
+            proteinPer100g: 20,
+            fatPer100g: 4,
+            carbsPer100g: 3,
+            fiberPer100g: 0,
+            calcium: 6,
+            phosphorus: 387,
+            magnesium: 18,
+            iron: 5.4,
+            zinc: 4.0,
+            sodium: 69,
+            vitaminA: 4968,
+            vitaminD: 1.2,
+            vitaminE: 0.6,
+            vitaminB12: 70.7
+        )
+
+        #expect(food.calcium == 6)
+        #expect(food.phosphorus == 387)
+        #expect(food.magnesium == 18)
+        #expect(food.iron == 5.4)
+        #expect(food.zinc == 4.0)
+        #expect(food.sodium == 69)
+        #expect(food.vitaminA == 4968)
+        #expect(food.vitaminD == 1.2)
+        #expect(food.vitaminE == 0.6)
+        #expect(food.vitaminB12 == 70.7)
+    }
+
+    @Test("ModelContainer startar med uppdaterad Food-modell")
+    @MainActor
+    func modelContainerStartsWithMicronutrientFields() throws {
+        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
+
+        let container = try ModelContainer(
+            for: Dog.self,
+            Food.self,
+            Meal.self,
+            MealItem.self,
+            PlannedMeal.self,
+            Recipe.self,
+            RecipeItem.self,
+            configurations: configuration
+        )
+
+        _ = container.mainContext
     }
 
     @Test("Dubblettnamn för ingrediens hittas skiftlägesokänsligt")
