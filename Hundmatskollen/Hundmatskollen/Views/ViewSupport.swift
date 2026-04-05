@@ -9,6 +9,40 @@ extension Food {
 
         return "\(category.icon) \(name)"
     }
+
+    var micronutrientEntries: [FoodMicronutrientEntry] {
+        [
+            FoodMicronutrientEntry(title: "Kalcium", value: calcium, unit: "mg"),
+            FoodMicronutrientEntry(title: "Fosfor", value: phosphorus, unit: "mg"),
+            FoodMicronutrientEntry(title: "Magnesium", value: magnesium, unit: "mg"),
+            FoodMicronutrientEntry(title: "Järn", value: iron, unit: "mg"),
+            FoodMicronutrientEntry(title: "Zink", value: zinc, unit: "mg"),
+            FoodMicronutrientEntry(title: "Natrium", value: sodium, unit: "mg"),
+            FoodMicronutrientEntry(title: "Vitamin A", value: vitaminA, unit: "µg"),
+            FoodMicronutrientEntry(title: "Vitamin D", value: vitaminD, unit: "µg"),
+            FoodMicronutrientEntry(title: "Vitamin E", value: vitaminE, unit: "mg"),
+            FoodMicronutrientEntry(title: "Vitamin B12", value: vitaminB12, unit: "µg")
+        ]
+        .compactMap { $0 }
+    }
+}
+
+struct FoodMicronutrientEntry: Identifiable, Equatable {
+    let title: String
+    let value: Double
+    let unit: String
+
+    var id: String { title }
+    var valueText: String {
+        "\(value.formatted(.number.precision(.fractionLength(0 ... 1)))) \(unit)"
+    }
+
+    init?(title: String, value: Double?, unit: String) {
+        guard let value else { return nil }
+        self.title = title
+        self.value = value
+        self.unit = unit
+    }
 }
 
 struct FoodRowLabel: View {
@@ -55,6 +89,7 @@ struct FoodDetailView: View {
     @State private var isPresentingEditFood = false
     @State private var mealDog: Dog?
     @State private var recipeDog: Dog?
+    @State private var showsMicronutrients = true
 
     var body: some View {
         List {
@@ -70,6 +105,14 @@ struct FoodDetailView: View {
                 LabeledContent("Fett", value: "\(format(food.fatPer100g)) g / \(food.nutritionBasisLabel)")
                 LabeledContent("Kolhydrater", value: "\(format(food.carbsPer100g)) g / \(food.nutritionBasisLabel)")
                 LabeledContent("Fiber", value: "\(format(food.fiberPer100g)) g / \(food.nutritionBasisLabel)")
+
+                if !food.micronutrientEntries.isEmpty {
+                    DisclosureGroup("Mikronäringsämnen", isExpanded: $showsMicronutrients) {
+                        ForEach(food.micronutrientEntries) { entry in
+                            LabeledContent(entry.title, value: entry.valueText)
+                        }
+                    }
+                }
             }
 
             if food.isDangerousForDogs {
@@ -147,11 +190,7 @@ struct FoodDetailView: View {
     }
 
     private func format(_ value: Double) -> String {
-        if value.rounded() == value {
-            return String(Int(value))
-        }
-
-        return String(format: "%.1f", value)
+        value.formatted(.number.precision(.fractionLength(0 ... 1)))
     }
 }
 

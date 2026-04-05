@@ -194,6 +194,45 @@ struct HundmatskollenTests {
         #expect(food.vitaminB12 == 70.7)
     }
 
+    @Test("Ingrediensdetaljen bygger mikronäringsrader för värden som finns")
+    func foodDetailMicronutrientEntriesIncludeOnlyAvailableValues() {
+        let food = Food(
+            name: "Sardin",
+            category: .fish,
+            caloriesPer100g: 150,
+            proteinPer100g: 20,
+            fatPer100g: 9,
+            carbsPer100g: 0,
+            fiberPer100g: 0,
+            calcium: 250,
+            zinc: 1.3,
+            vitaminB12: 8.9
+        )
+
+        let entries = food.micronutrientEntries
+
+        #expect(entries.count == 3)
+        #expect(entries.map(\.title) == ["Kalcium", "Zink", "Vitamin B12"])
+        #expect(entries[0].valueText == "250 mg")
+        #expect(entries[1].valueText == "1,3 mg" || entries[1].valueText == "1.3 mg")
+        #expect(entries[2].valueText == "8,9 µg" || entries[2].valueText == "8.9 µg")
+    }
+
+    @Test("Ingrediensdetaljen döljer mikronäringssektionen när alla värden saknas")
+    func foodDetailMicronutrientEntriesAreEmptyWhenAllValuesAreMissing() {
+        let food = Food(
+            name: "Kyckling",
+            category: .meat,
+            caloriesPer100g: 110,
+            proteinPer100g: 23,
+            fatPer100g: 2,
+            carbsPer100g: 0,
+            fiberPer100g: 0
+        )
+
+        #expect(food.micronutrientEntries.isEmpty)
+    }
+
     @Test("Mikronäringsmetoder skalar värden per gram korrekt")
     func micronutrientScalingUsesPerHundredGramValues() {
         let food = Food(
